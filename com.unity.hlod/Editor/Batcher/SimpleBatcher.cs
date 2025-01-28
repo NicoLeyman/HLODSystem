@@ -77,8 +77,7 @@ namespace Unity.HLODSystem
                     AddToCache(material);
                 }
 
-                var textures = m_textureCache[material.Guid];
-                if (textures != null)
+                if (m_textureCache.TryGetValue(material.Guid, out var textures))
                 {
                     foreach (var inputName in m_textureInfoList[0].InputNames)
                     {
@@ -99,6 +98,9 @@ namespace Unity.HLODSystem
 
             private void AddToCache(WorkingMaterial material)
             {
+                if (m_textureInfoList.Count == 0)
+                    return;
+
                 var textureInfo = m_textureInfoList[0];
                 WorkingTexture texture = null;
 
