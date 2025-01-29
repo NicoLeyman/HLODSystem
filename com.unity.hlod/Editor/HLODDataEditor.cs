@@ -39,7 +39,7 @@ namespace Unity.HLODSystem
                 var gameOb = rootData.SerializedGameObjects[i];
                 var meshFilter = gameOb.GetComponent<MeshFilter>();
                 // The gameObject name should be the same, but still...
-                item.text = meshFilter.sharedMesh.name;
+                item.text = meshFilter != null ? meshFilter.sharedMesh.name : gameOb.name;
             };
             meshList.selectionType = SelectionType.Single;
             meshList.selectionChanged += SelectMesh;
@@ -161,6 +161,9 @@ namespace Unity.HLODSystem
             public UVGrid UVGrid;
 
             public SliderInt UVChannelSlider;
+            public DropdownField TextureChannels;
+
+            Material Material;
 
             public UVLayoutElement()
             {
@@ -169,12 +172,19 @@ namespace Unity.HLODSystem
                 header.style.flexDirection = FlexDirection.Row;
 
                 {
+                    TextureChannels = new DropdownField();
+                    TextureChannels.RegisterValueChangedCallback((e) => SetTextureChannel(e.newValue));
+                    TextureChannels.label = "Texture Channel";
+                    header.Add(TextureChannels);
+                }
+
+                {
                     UVChannelSlider = new SliderInt();
                     UVChannelSlider.RegisterValueChangedCallback((e) => UVGrid.SetChannelIdx(e.newValue));
                     UVChannelSlider.lowValue = 0;
                     UVChannelSlider.highValue = 7;
-                    UVChannelSlider.label = "TexCoord";
-                    UVChannelSlider.style.width = new StyleLength(new Length(100.0f, LengthUnit.Percent));
+                    UVChannelSlider.label = "TexCoord Channel";
+                    UVChannelSlider.style.minWidth = new StyleLength(new Length(35.0f, LengthUnit.Percent));
                     UVChannelSlider.showInputField = true;
                     header.Add(UVChannelSlider);
                 }
@@ -191,16 +201,38 @@ namespace Unity.HLODSystem
                 TextureImage.Add(UVGrid);
             }
 
+            void SetTextureChannel(string texturePropertyName)
+            {
+                var texture = Material.GetTexture(texturePropertyName);
+                if (texture != null)
+                {
+                    TextureImage.image = texture;
+                    UVGrid.style.width = texture.width;
+                    UVGrid.style.height = texture.height;
+                    TextureImage.style.width = texture.width;
+                    TextureImage.style.height = texture.height;
+                }
+            }
+
             public void SetSelectedObject(Mesh mesh, Material mat)
             {
                 UVGrid.Mesh = mesh;
+                Material = mat;
 
-                var texture = mat.mainTexture;
-                TextureImage.image = texture;
-                UVGrid.style.width = texture.width;
-                UVGrid.style.height = texture.height;
-                TextureImage.style.width = texture.width;
-                TextureImage.style.height = texture.height;
+                var textureProps = new List<string>(mat.GetTexturePropertyNames());
+
+                for(var i = textureProps.Count - 1; i >= 0; i--)
+                {
+                    if (mat.GetTexture(textureProps[i]) == null)
+                    {
+                        textureProps.RemoveAt(i);
+                    }
+                }
+
+                var selectedChannel = textureProps.IndexOf(TextureChannels.value);
+                TextureChannels.choices = textureProps;
+                TextureChannels.index = selectedChannel != -1 ? selectedChannel : 0;
+                SetTextureChannel(TextureChannels.value);
 
                 UVGrid.MarkDirtyRepaint();
             }
