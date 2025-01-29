@@ -18,6 +18,9 @@ namespace Unity.HLODSystem
         private string m_totalTexture= "";
         private string m_totalMesh= "";
 
+        public override bool showImportedObject => true;
+        protected override bool useAssetDrawPreview => true;
+
         public override void OnEnable()
         {
             base.OnEnable();

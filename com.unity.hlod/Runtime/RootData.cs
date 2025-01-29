@@ -10,6 +10,9 @@ namespace Unity.HLODSystem
 
         [SerializeField] private List<string> m_serializedNames = new List<string>();
         [SerializeField] private List<GameObject> m_serializedGameObjects = new List<GameObject>();
+
+        public static string ObjectsBindingPath => nameof(m_serializedGameObjects);
+        public List<GameObject> SerializedGameObjects => m_serializedGameObjects;
         
 
         public void SetRootObject(string name, GameObject gameObject)

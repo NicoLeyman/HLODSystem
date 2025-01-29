@@ -20,6 +20,8 @@ namespace Unity.HLODSystem
         private string[] inputTexturePropertyNames = null;
         [NonSerialized]
         private string[] outputTexturePropertyNames = null;
+        [NonSerialized]
+        HLOD lastHLODReferenced = null;
 
         static string[] GetTexturePropertyNames(Shader shader)
         {
@@ -71,7 +73,13 @@ namespace Unity.HLODSystem
                 ShaderGUID = shaderGUID;
                 outputTexturePropertyNames = GetTexturePropertyNames(resolvedShader);
             }
-            
+
+            if (hlod != lastHLODReferenced)
+            {
+                inputTexturePropertyNames = null;
+                lastHLODReferenced = hlod;
+            }
+
             if (inputTexturePropertyNames == null && hlod != null)
             {
                 inputTexturePropertyNames = GetAllMaterialTextureProperties(hlod.gameObject);
