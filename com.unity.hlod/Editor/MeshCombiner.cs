@@ -40,7 +40,7 @@ namespace Unity.HLODSystem
                 verticesCount += (infos[i].Mesh.vertices.Length > 0) ? remapper.Count : 0;
                 normalCount += (infos[i].Mesh.normals.Length > 0) ? remapper.Count : 0;
                 tangentCount += (infos[i].Mesh.tangents.Length > 0) ? remapper.Count : 0;
-                UV1Count += (infos[i].Mesh.uv.Length > 0) ? remapper.Count : 0;
+                UV1Count += (infos[i].Mesh.uv1.Length > 0) ? remapper.Count : 0;
                 UV2Count += (infos[i].Mesh.uv2.Length > 0) ? remapper.Count : 0;
                 UV3Count += (infos[i].Mesh.uv3.Length > 0) ? remapper.Count : 0;
                 UV4Count += (infos[i].Mesh.uv4.Length > 0) ? remapper.Count : 0;
@@ -101,7 +101,7 @@ namespace Unity.HLODSystem
                 }
 
                 if ( UV1Count > 0 )
-                    FillBuffer(ref uv1s, mesh.uv, remapper, Vector2.zero);
+                    FillBuffer(ref uv1s, mesh.uv1, remapper, Vector2.zero);
                 if ( UV2Count > 0 )
                     FillBuffer(ref uv2s, mesh.uv2, remapper, Vector2.zero);
                 if ( UV3Count > 0 )
@@ -119,7 +119,7 @@ namespace Unity.HLODSystem
             combinedMesh.vertices = vertices.ToArray();
             combinedMesh.normals = normals.ToArray();
             combinedMesh.tangents = tangents.ToArray();
-            combinedMesh.uv = uv1s.ToArray();
+            combinedMesh.uv1 = uv1s.ToArray();
             combinedMesh.uv2 = uv2s.ToArray();
             combinedMesh.uv3 = uv3s.ToArray();
             combinedMesh.uv4 = uv4s.ToArray();

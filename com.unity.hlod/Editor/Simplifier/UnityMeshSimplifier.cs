@@ -26,7 +26,7 @@ namespace Unity.HLODSystem.Simplifier
             meshSimplifier.Vertices = origin.vertices;
             meshSimplifier.Normals = origin.normals;
             meshSimplifier.Tangents = origin.tangents;
-            meshSimplifier.UV1 = origin.uv;
+            meshSimplifier.UV1 = origin.uv1;
             meshSimplifier.UV2 = origin.uv2;
             meshSimplifier.UV3 = origin.uv3;
             meshSimplifier.UV4 = origin.uv4;
@@ -53,7 +53,7 @@ namespace Unity.HLODSystem.Simplifier
             nwm.vertices = meshSimplifier.Vertices;
             nwm.normals = meshSimplifier.Normals;
             nwm.tangents = meshSimplifier.Tangents;
-            nwm.uv = meshSimplifier.UV1;
+            nwm.uv1 = meshSimplifier.UV1;
             nwm.uv2 = meshSimplifier.UV2;
             nwm.uv3 = meshSimplifier.UV3;
             nwm.uv4 = meshSimplifier.UV4;

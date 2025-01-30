@@ -26,7 +26,7 @@ namespace Unity.HLODSystem.Utils
             wm.vertices = mesh.vertices;
             wm.normals = mesh.normals;
             wm.tangents = mesh.tangents;
-            wm.uv = mesh.uv;
+            wm.uv1 = mesh.uv;
             wm.uv2 = mesh.uv2;
             wm.uv3 = mesh.uv3;
             wm.uv4 = mesh.uv4;
@@ -52,7 +52,7 @@ namespace Unity.HLODSystem.Utils
             Vertices,
             Normals,
             Tangents,
-            UV,
+            UV1,
             UV2,
             UV3,
             UV4,
@@ -151,28 +151,28 @@ namespace Unity.HLODSystem.Utils
             set { m_Counts[(int)Channel.Tangents] = value; }
         }
 
-        public Vector2[] uv
+        public Vector2[] uv1
         {
-            get { return m_UV.Slice(0, uvCount).ToArray(); }
+            get { return m_UV1.Slice(0, uv1Count).ToArray(); }
             set
             {
                 if (value == null || value.Length == 0)
                 {
-                    uvCount = 0;
+                    uv1Count = 0;
                 }
                 else
                 {
-                    uvCount = value.Length;
-                    m_UV.Slice(0, uvCount).CopyFrom(value);
+                    uv1Count = value.Length;
+                    m_UV1.Slice(0, uv1Count).CopyFrom(value);
                 }
             }
         }
-        NativeArray<Vector2> m_UV;
+        NativeArray<Vector2> m_UV1;
 
-        int uvCount
+        int uv1Count
         {
-            get { return m_Counts[(int)Channel.UV]; }
-            set { m_Counts[(int)Channel.UV] = value; }
+            get { return m_Counts[(int)Channel.UV1]; }
+            set { m_Counts[(int)Channel.UV1] = value; }
         }
 
         public Vector2[] uv2
@@ -465,7 +465,7 @@ namespace Unity.HLODSystem.Utils
             m_Vertices = new NativeArray<Vector3>(maxVertices, allocator);
             m_Normals = new NativeArray<Vector3>(maxVertices, allocator);
             m_Tangents = new NativeArray<Vector4>(maxVertices, allocator);
-            m_UV = new NativeArray<Vector2>(maxVertices, allocator);
+            m_UV1 = new NativeArray<Vector2>(maxVertices, allocator);
             m_UV2 = new NativeArray<Vector2>(maxVertices, allocator);
             m_UV3 = new NativeArray<Vector2>(maxVertices, allocator);
             m_UV4 = new NativeArray<Vector2>(maxVertices, allocator);
@@ -491,8 +491,8 @@ namespace Unity.HLODSystem.Utils
             if (m_Tangents.IsCreated)
                 m_Tangents.Dispose();
 
-            if (m_UV.IsCreated)
-                m_UV.Dispose();
+            if (m_UV1.IsCreated)
+                m_UV1.Dispose();
 
             if (m_UV2.IsCreated)
                 m_UV2.Dispose();
@@ -540,7 +540,7 @@ namespace Unity.HLODSystem.Utils
             mesh.vertices = vertices;
             mesh.normals = normals;
             mesh.tangents = tangents;
-            mesh.uv = uv;
+            mesh.uv = uv1;
             mesh.uv2 = uv2;
             mesh.uv3 = uv3;
             mesh.uv4 = uv4;

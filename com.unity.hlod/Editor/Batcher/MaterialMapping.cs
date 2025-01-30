@@ -14,6 +14,7 @@ namespace Unity.HLODSystem
         private string ShaderGUID = "";
         public bool EnableTintColor = true;
         public string TintColorName = "_Color";
+        public string OutputTexturePropertyToTint = "";
         public List<TextureInfo> TextureInfoList = new (){ };
         
         [NonSerialized]
@@ -63,6 +64,8 @@ namespace Unity.HLODSystem
         
         public void DrawGUI(HLOD hlod, ref bool textureSlotFoldout)
         {
+            EditorGUI.BeginChangeCheck();
+
             Shader = (Shader)EditorGUILayout.ObjectField(new GUIContent("Shader", "A value of null refers to the current render pipeline's default shader."), Shader, typeof(Shader), false);
                 
             var resolvedShader = Shader != null ? Shader : Utils.GraphicsUtils.GetDefaultShader();
@@ -117,7 +120,12 @@ namespace Unity.HLODSystem
                 {
                     TintColorName = "";
                 }
-                
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(new GUIContent("Output Texture To Tint", "Any input texture mapped to this output property will try to apply the tint color if present on the input material."));
+                OutputTexturePropertyToTint = GUIUtils.StringPopup(OutputTexturePropertyToTint, outputTexturePropertyNames);
+                EditorGUILayout.EndHorizontal();
+
                 EditorGUI.indentLevel -= 1;
             }
             
@@ -210,6 +218,11 @@ namespace Unity.HLODSystem
                 EditorGUILayout.EndHorizontal();
 
                 EditorGUI.indentLevel -= 1;
+            }
+
+            if(EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.SetDirty(this);
             }
         }
     }

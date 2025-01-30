@@ -61,12 +61,14 @@ namespace Unity.HLODSystem
                 
             private bool m_enableTintColor;
             private string m_tintColorName;
+            private string m_outputTextureToTintName;
             
             public MaterialTextureCache(MaterialMapping mapping)
             {
                 m_defaultTextures = CreateDefaultTextures();
                 m_enableTintColor = mapping.EnableTintColor;
                 m_tintColorName = mapping.TintColorName;
+                m_outputTextureToTintName = mapping.OutputTexturePropertyToTint;
                 m_textureInfoList = mapping.TextureInfoList;
                 m_textureCache = new DisposableDictionary<string, TexturePacker.MaterialTexture>();
             }
@@ -100,43 +102,13 @@ namespace Unity.HLODSystem
             {
                 if (m_textureInfoList.Count == 0)
                     return;
-
-                var textureInfo = m_textureInfoList[0];
-                WorkingTexture texture = null;
-
-                foreach (var inputName in textureInfo.InputNames)
-                {
-                    texture = material.GetTexture(inputName);
-
-                    if (texture != null)
-                        break;
-                }
-
-                if (texture == null)
-                {
-                    texture = m_defaultTextures[textureInfo.Type];
-                }
                 
                 TexturePacker.MaterialTexture materialTexture = new TexturePacker.MaterialTexture();
-
-                if (m_enableTintColor)
-                {
-                    Color tintColor = material.GetColor(m_tintColorName);
-
-                    texture = texture.Clone();
-                    ApplyTintColor(texture, tintColor);
-                    materialTexture.Add(texture);
-                    texture.Dispose();
-                }
-                else
-                {
-                    materialTexture.Add(texture);
-                }
                 
 
-                for (int ti = 1; ti < m_textureInfoList.Count; ++ti)
+                for (int ti = 0; ti < m_textureInfoList.Count; ++ti)
                 {
-                    textureInfo = m_textureInfoList[ti];
+                    var textureInfo = m_textureInfoList[ti];
 
                     WorkingTexture tex = null;
 
@@ -153,7 +125,19 @@ namespace Unity.HLODSystem
                         tex = m_defaultTextures[textureInfo.Type];
                     }
 
-                    materialTexture.Add(tex);
+                    // TODO: Allow color tint per layer input.
+                    if (m_enableTintColor && textureInfo.OutputName == m_outputTextureToTintName)
+                    {
+                        Color tintColor = material.GetColor(m_tintColorName);
+
+                        tex = tex.Clone();
+                        ApplyTintColor(tex, tintColor);
+                        materialTexture.Add(tex, true);
+                    }
+                    else
+                    {
+                        materialTexture.Add(tex);
+                    }
                 }
 
                 m_textureCache.Add(material.Guid, materialTexture);
@@ -295,7 +279,13 @@ namespace Unity.HLODSystem
             if (atlas == null)
                 return;
 
-            List<TextureInfo> textureInfoList = options.TextureInfoList;
+            MaterialMapping materialMapping = options.MaterialMapping;
+            // Resolve material mapping
+            if (materialMapping == null)
+            {
+                materialMapping = HLODEditorSettings.DefaultMaterialMapping;
+            }
+
             List<MeshCombiner.CombineInfo> combineInfos = new List<MeshCombiner.CombineInfo>();
             var hlodWorldToLocal = rootTransform.worldToLocalMatrix;
 
@@ -305,7 +295,7 @@ namespace Unity.HLODSystem
                 if (obj.Mesh == null)
                     continue;
 
-                ConvertMesh(obj.Mesh, obj.Materials, atlas, textureInfoList[0].InputNames[0]);
+                ConvertMesh(obj.Mesh, obj.Materials, atlas, materialMapping.TextureInfoList[0].InputNames);
 
                 for (int si = 0; si < obj.Mesh.subMeshCount; ++si)
                 {
@@ -342,10 +332,14 @@ namespace Unity.HLODSystem
         }
 
 
-        private void ConvertMesh(WorkingMesh mesh, DisposableList<WorkingMaterial> materials, TexturePacker.TextureAtlas atlas, string mainTextureName)
+        private void ConvertMesh(WorkingMesh mesh, DisposableList<WorkingMaterial> materials, TexturePacker.TextureAtlas atlas, IList<string> inputTexturePropertyNames)
         {
-            var uv = mesh.uv;
-            var updated = new bool[uv.Length];
+            var uv1 = mesh.uv1;
+            var uv2 = mesh.uv2;
+            var uv3 = mesh.uv3;
+            var uv4 = mesh.uv4;
+
+            var updated = new bool[uv1.Length];
             // Some meshes have submeshes that either aren't expected to render or are missing a material, so go ahead and skip
             int subMeshCount = Mathf.Min(mesh.subMeshCount, materials.Count);
             for (int mi = 0; mi < subMeshCount; ++mi)
@@ -355,31 +349,63 @@ namespace Unity.HLODSystem
                 {
                     if ( updated[i] == false )
                     {
-                        var uvCoord = uv[i];
-                        var texture = materials[mi].GetTexture(mainTextureName);
+                        var uvCoord1 = uv1[i];
+                        var uvCoord2 = uv2.Length > 0 ? uv2[i] : Vector2.zero;
+                        var uvCoord3 = uv3.Length > 0 ? uv3[i] : Vector2.zero;
+                        var uvCoord4 = uv4.Length > 0 ? uv4[i] : Vector2.zero;
+                        WorkingTexture texture = null;
+
+                        foreach (var texturePropertyName in inputTexturePropertyNames)
+                        {
+                            texture = materials[mi].GetTexture(texturePropertyName);
+                            if (texture != null)
+                                break;
+                        }
                         
                         if (texture == null || texture.GetGUID() == Guid.Empty)
                         {
                             // Sample at center of white texture to avoid sampling edge colors incorrectly
-                            uvCoord.x = 0.5f;
-                            uvCoord.y = 0.5f;
+                            uvCoord1.x = 0.5f;
+                            uvCoord1.y = 0.5f;
+                            uvCoord2 = uvCoord1;
+                            uvCoord3 = uvCoord1;
+                            uvCoord4 = uvCoord1;
                         }
                         else
                         {
                             var uvOffset = atlas.GetUV(texture.GetGUID());
                             
-                            uvCoord.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord.x);
-                            uvCoord.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord.y);
+                            uvCoord1.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord1.x);
+                            uvCoord1.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord1.y);
+
+                            uvCoord2.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord2.x);
+                            uvCoord2.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord2.y);
+
+                            uvCoord3.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord3.x);
+                            uvCoord3.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord3.y);
+
+                            uvCoord4.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord4.x);
+                            uvCoord4.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord4.y);
                         }
                         
-                        uv[i] = uvCoord;
+                        uv1[i] = uvCoord1;
+                        if(uv2.Length > 0)
+                            uv2[i] = uvCoord2;
+                        if (uv3.Length > 0)
+                            uv3[i] = uvCoord3;
+                        if (uv4.Length > 0)
+                            uv4[i] = uvCoord4;
+
                         updated[i] = true;
                     }
                 }
                 
             }
 
-            mesh.uv = uv;
+            mesh.uv1 = uv1;
+            mesh.uv2 = uv2;
+            //mesh.uv3 = uv3;
+            //mesh.uv4 = uv4;
         }
 
         static private WorkingTexture CreateEmptyTexture(int width, int height, Color color, bool linear, bool isNormal = false)
@@ -444,28 +470,28 @@ namespace Unity.HLODSystem
                 batcherOptions.LimitTextureSize = 128;
             if (batcherOptions.MaterialGUID == null)
                 batcherOptions.MaterialGUID = "";
-            if (batcherOptions.TextureInfoList == null)
-            {
-                batcherOptions.TextureInfoList = new List<TextureInfo>(){
-                    new TextureInfo()
-                {
-                    InputNames = { "_MainTex" },
-                    OutputName = "_MainTex",
-                    Type = PackingType.White
-                },
-                new TextureInfo()
-                {
-                    InputNames = { "_BumpMap", "_NormalMap" },
-                    OutputName = "_NormalMap",
-                    Type = PackingType.Normal
-                },
-                new TextureInfo()
-                {
-                    InputNames = { "_MaskMap"},
-                    OutputName = "_MaskMap",
-                    Type = PackingType.Black
-                } };
-            }
+            //if (batcherOptions.TextureInfoList == null)
+            //{
+            //    batcherOptions.TextureInfoList = new List<TextureInfo>(){
+            //        new TextureInfo()
+            //    {
+            //        InputNames = { "_MainTex" },
+            //        OutputName = "_MainTex",
+            //        Type = PackingType.White
+            //    },
+            //    new TextureInfo()
+            //    {
+            //        InputNames = { "_BumpMap", "_NormalMap" },
+            //        OutputName = "_NormalMap",
+            //        Type = PackingType.Normal
+            //    },
+            //    new TextureInfo()
+            //    {
+            //        InputNames = { "_MaskMap"},
+            //        OutputName = "_MaskMap",
+            //        Type = PackingType.Black
+            //    } };
+            //}
 
             batcherOptions.PackTextureSize = EditorGUILayout.IntPopup("Pack texture size", batcherOptions.PackTextureSize, Styles.PackTextureSizeNames, Styles.PackTextureSizes);
             batcherOptions.LimitTextureSize = EditorGUILayout.IntPopup("Limit texture size", batcherOptions.LimitTextureSize, Styles.LimitTextureSizeNames, Styles.LimitTextureSizes);
@@ -492,9 +518,9 @@ namespace Unity.HLODSystem
 
             if (batcherOptions.FoldoutMapping == null)
                 batcherOptions.FoldoutMapping = false;
-            
+
             batcherOptions.FoldoutMapping = EditorGUILayout.Foldout((bool)batcherOptions.FoldoutMapping, "Material Mapping");
-            materialMapping = (MaterialMapping)EditorGUILayout.ObjectField(materialMapping, typeof(MaterialMapping), false);
+            batcherOptions.MaterialMappingGUID = GUIUtils.DynamicAssetPropertyGUI<MaterialMapping>(null, batcherOptions.MaterialMappingGUID, null);
             batcherOptions.MaterialMapping = materialMapping;
             
             // Resolve material mapping

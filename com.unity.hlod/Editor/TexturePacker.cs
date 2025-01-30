@@ -16,9 +16,9 @@ namespace Unity.HLODSystem
             private NativeArray<int> m_detector = new NativeArray<int>(1, Allocator.Persistent);
 
 
-            public void Add(WorkingTexture texture)
+            public void Add(WorkingTexture texture, bool takeOwnership = false)
             {
-                m_textures.Add(texture.Clone());
+                m_textures.Add(takeOwnership ? texture : texture.Clone());
             }
 
             public MaterialTexture Clone()

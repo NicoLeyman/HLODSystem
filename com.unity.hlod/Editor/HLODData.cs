@@ -86,7 +86,7 @@ namespace Unity.HLODSystem
                 m_vertices = ArrayToBytes(mesh.vertices);
                 m_normals = ArrayToBytes(mesh.normals);
                 m_tangents = ArrayToBytes(mesh.tangents);
-                m_uvs = ArrayToBytes(mesh.uv);
+                m_uvs = ArrayToBytes(mesh.uv1);
                 m_uvs2 = ArrayToBytes(mesh.uv2);
                 m_uvs3 = ArrayToBytes(mesh.uv3);
                 m_uvs4 = ArrayToBytes(mesh.uv4);

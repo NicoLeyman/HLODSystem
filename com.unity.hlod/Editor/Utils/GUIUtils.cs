@@ -37,5 +37,22 @@ namespace Unity.HLODSystem
             int selected = EditorGUILayout.Popup(index, options);
             return options[selected];
         }
+
+        public static string DynamicAssetPropertyGUI<T>(string label, string serializedAssetGUID, T defaultValue) where T : UnityEngine.Object
+        {
+            string path = "";
+            T asset = null;
+            if (string.IsNullOrEmpty(serializedAssetGUID) == false)
+            {
+                path = AssetDatabase.GUIDToAssetPath(serializedAssetGUID);
+                asset = AssetDatabase.LoadAssetAtPath<T>(path);
+            }
+            asset = EditorGUILayout.ObjectField(label, asset, typeof(T), false) as T;
+            if (asset == null)
+                asset = defaultValue;
+
+            path = AssetDatabase.GetAssetPath(asset);
+            return AssetDatabase.AssetPathToGUID(path);
+        }
     }
 }

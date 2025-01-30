@@ -138,9 +138,17 @@ namespace Unity.HLODSystem
                             var vi1 = triangles[t + 1];
                             var vi2 = triangles[t + 2];
 
-                            var tc0 = texCoords[vi0] * controlWidth + offset;
-                            var tc1 = texCoords[vi1] * controlWidth + offset;
-                            var tc2 = texCoords[vi2] * controlWidth + offset;
+                            var tc0 = texCoords[vi0];
+                            var tc1 = texCoords[vi1];
+                            var tc2 = texCoords[vi2];
+
+                            tc0.y = 1.0f - tc0.y;
+                            tc1.y = 1.0f - tc1.y;
+                            tc2.y = 1.0f - tc2.y;
+
+                            tc0 = tc0 * controlWidth + offset;
+                            tc1 = tc1 * controlWidth + offset;
+                            tc2 = tc2 * controlWidth + offset;
 
                             paint2D.BeginPath();
                             paint2D.MoveTo(tc0);

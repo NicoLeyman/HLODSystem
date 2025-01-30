@@ -408,7 +408,7 @@ namespace Unity.HLODSystem
 
             mesh.vertices = vertices;
             mesh.normals = normals;
-            mesh.uv = uvs;
+            mesh.uv1 = uvs;
             mesh.SetTriangles(triangles, 0);
 
             return mesh;
@@ -713,7 +713,7 @@ namespace Unity.HLODSystem
         {
             List<Vector3> vertices = source.vertices.ToList();
             List<Vector3> normals = source.normals.ToList();
-            List<Vector2> uvs = source.uv.ToList();
+            List<Vector2> uvs = source.uv1.ToList();
             List<int[]> subMeshTris = new List<int[]>();
 
             int maxTris = 0;
@@ -789,7 +789,7 @@ namespace Unity.HLODSystem
             mesh.name = source.name;
             mesh.vertices = vertices.ToArray();
             mesh.normals = normals.ToArray();
-            mesh.uv = uvs.ToArray();
+            mesh.uv1 = uvs.ToArray();
 
             for (int i = 0; i < subMeshTris.Count; ++i)
             {
@@ -802,7 +802,7 @@ namespace Unity.HLODSystem
         private void ReampUV(WorkingMesh mesh, Heightmap heightmap)
         {
             var vertices = mesh.vertices;
-            var uvs = mesh.uv;
+            var uvs = mesh.uv1;
 
             for (int i = 0; i < mesh.vertexCount; ++i)
             {
@@ -813,7 +813,7 @@ namespace Unity.HLODSystem
                 //vertices[i].
             }
 
-            mesh.uv = uvs;
+            mesh.uv1 = uvs;
         }
         private int CalcBorderWidth(Heightmap heightmap, int distance)
         {
@@ -975,7 +975,7 @@ namespace Unity.HLODSystem
             mesh.name = source.name;
             mesh.vertices = source.vertices;
             mesh.normals = source.normals;
-            mesh.uv = source.uv;
+            mesh.uv1 = source.uv1;
 
             for (int i = 0; i < newTris.Count; ++i)
             {
