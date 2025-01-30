@@ -375,17 +375,27 @@ namespace Unity.HLODSystem
                         {
                             var uvOffset = atlas.GetUV(texture.GetGUID());
                             
-                            uvCoord1.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord1.x);
-                            uvCoord1.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord1.y);
+                            // TODO: for tiling textures (UVs outside the 0-1 range):
+                            // - Split the geometry into chunks with normalized UV coordinates before combining/atlassing the geometry.
+                            // -----> Likely to increase geometry density which we want to avoid.
+                            // - Normalize the UVs for all meshes sharing the same atlas space based on the one with the largest UV requirements.
+                            // - Bake the tiling into the atlas space.
+                            // -----> Reduces texel density. The quality loss may not be too noticeable in most cases and comes at no perf cost.
+                            // - Reserve multiple atlas items to either componsate for the texel density loss or to accommodate the UV requirements
+                            // -----> Unlikely to be able to meet all UV requirements.
+                            // -----> Uses a lot of atlas space to compensate.
+                            // -----> Please don't make me figure out how to play the atlas item tetris game. Q.Q
+                            uvCoord1.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord1.x % 1);
+                            uvCoord1.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord1.y % 1);
 
-                            uvCoord2.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord2.x);
-                            uvCoord2.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord2.y);
+                            uvCoord2.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord2.x % 1);
+                            uvCoord2.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord2.y % 1);
 
-                            uvCoord3.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord3.x);
-                            uvCoord3.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord3.y);
+                            uvCoord3.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord3.x % 1);
+                            uvCoord3.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord3.y % 1);
 
-                            uvCoord4.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord4.x);
-                            uvCoord4.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord4.y);
+                            uvCoord4.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord4.x % 1);
+                            uvCoord4.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord4.y % 1);
                         }
                         
                         uv1[i] = uvCoord1;
@@ -404,8 +414,8 @@ namespace Unity.HLODSystem
 
             mesh.uv1 = uv1;
             mesh.uv2 = uv2;
-            //mesh.uv3 = uv3;
-            //mesh.uv4 = uv4;
+            mesh.uv3 = uv3;
+            mesh.uv4 = uv4;
         }
 
         static private WorkingTexture CreateEmptyTexture(int width, int height, Color color, bool linear, bool isNormal = false)
