@@ -340,82 +340,85 @@ namespace Unity.HLODSystem
             var uv4 = mesh.uv4;
 
             var updated = new bool[uv1.Length];
-            // Some meshes have submeshes that either aren't expected to render or are missing a material, so go ahead and skip
-            int subMeshCount = Mathf.Min(mesh.subMeshCount, materials.Count);
-            for (int mi = 0; mi < subMeshCount; ++mi)
+            if (updated.Length > 0)
             {
-                int[] indices = mesh.GetTriangles(mi);
-                foreach (var i in indices)
+                // Some meshes have submeshes that either aren't expected to render or are missing a material, so go ahead and skip
+                int subMeshCount = Mathf.Min(mesh.subMeshCount, materials.Count);
+                for (int mi = 0; mi < subMeshCount; ++mi)
                 {
-                    if ( updated[i] == false )
+                    int[] indices = mesh.GetTriangles(mi);
+                    foreach (var i in indices)
                     {
-                        var uvCoord1 = uv1[i];
-                        var uvCoord2 = uv2.Length > 0 ? uv2[i] : Vector2.zero;
-                        var uvCoord3 = uv3.Length > 0 ? uv3[i] : Vector2.zero;
-                        var uvCoord4 = uv4.Length > 0 ? uv4[i] : Vector2.zero;
-                        WorkingTexture texture = null;
-
-                        foreach (var texturePropertyName in inputTexturePropertyNames)
+                        if (updated[i] == false)
                         {
-                            texture = materials[mi].GetTexture(texturePropertyName);
-                            if (texture != null)
-                                break;
+                            var uvCoord1 = uv1[i];
+                            var uvCoord2 = uv2.Length > 0 ? uv2[i] : Vector2.zero;
+                            var uvCoord3 = uv3.Length > 0 ? uv3[i] : Vector2.zero;
+                            var uvCoord4 = uv4.Length > 0 ? uv4[i] : Vector2.zero;
+                            WorkingTexture texture = null;
+
+                            foreach (var texturePropertyName in inputTexturePropertyNames)
+                            {
+                                texture = materials[mi].GetTexture(texturePropertyName);
+                                if (texture != null)
+                                    break;
+                            }
+
+                            if (texture == null || texture.GetGUID() == Guid.Empty)
+                            {
+                                // Sample at center of white texture to avoid sampling edge colors incorrectly
+                                uvCoord1.x = 0.5f;
+                                uvCoord1.y = 0.5f;
+                                uvCoord2 = uvCoord1;
+                                uvCoord3 = uvCoord1;
+                                uvCoord4 = uvCoord1;
+                            }
+                            else
+                            {
+                                var uvOffset = atlas.GetUV(texture.GetGUID());
+
+                                // TODO: for tiling textures (UVs outside the 0-1 range):
+                                // - Split the geometry into chunks with normalized UV coordinates before combining/atlassing the geometry.
+                                // -----> Likely to increase geometry density which we want to avoid.
+                                // - Normalize the UVs for all meshes sharing the same atlas space based on the one with the largest UV requirements.
+                                // - Bake the tiling into the atlas space.
+                                // -----> Reduces texel density. The quality loss may not be too noticeable in most cases and comes at no perf cost.
+                                // - Reserve multiple atlas items to either componsate for the texel density loss or to accommodate the UV requirements
+                                // -----> Unlikely to be able to meet all UV requirements.
+                                // -----> Uses a lot of atlas space to compensate.
+                                // -----> Please don't make me figure out how to play the atlas item tetris game. Q.Q
+                                uvCoord1.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord1.x % 1);
+                                uvCoord1.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord1.y % 1);
+
+                                uvCoord2.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord2.x % 1);
+                                uvCoord2.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord2.y % 1);
+
+                                uvCoord3.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord3.x % 1);
+                                uvCoord3.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord3.y % 1);
+
+                                uvCoord4.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord4.x % 1);
+                                uvCoord4.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord4.y % 1);
+                            }
+
+                            uv1[i] = uvCoord1;
+                            if (uv2.Length > 0)
+                                uv2[i] = uvCoord2;
+                            if (uv3.Length > 0)
+                                uv3[i] = uvCoord3;
+                            if (uv4.Length > 0)
+                                uv4[i] = uvCoord4;
+
+                            updated[i] = true;
                         }
-                        
-                        if (texture == null || texture.GetGUID() == Guid.Empty)
-                        {
-                            // Sample at center of white texture to avoid sampling edge colors incorrectly
-                            uvCoord1.x = 0.5f;
-                            uvCoord1.y = 0.5f;
-                            uvCoord2 = uvCoord1;
-                            uvCoord3 = uvCoord1;
-                            uvCoord4 = uvCoord1;
-                        }
-                        else
-                        {
-                            var uvOffset = atlas.GetUV(texture.GetGUID());
-                            
-                            // TODO: for tiling textures (UVs outside the 0-1 range):
-                            // - Split the geometry into chunks with normalized UV coordinates before combining/atlassing the geometry.
-                            // -----> Likely to increase geometry density which we want to avoid.
-                            // - Normalize the UVs for all meshes sharing the same atlas space based on the one with the largest UV requirements.
-                            // - Bake the tiling into the atlas space.
-                            // -----> Reduces texel density. The quality loss may not be too noticeable in most cases and comes at no perf cost.
-                            // - Reserve multiple atlas items to either componsate for the texel density loss or to accommodate the UV requirements
-                            // -----> Unlikely to be able to meet all UV requirements.
-                            // -----> Uses a lot of atlas space to compensate.
-                            // -----> Please don't make me figure out how to play the atlas item tetris game. Q.Q
-                            uvCoord1.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord1.x % 1);
-                            uvCoord1.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord1.y % 1);
-
-                            uvCoord2.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord2.x % 1);
-                            uvCoord2.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord2.y % 1);
-
-                            uvCoord3.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord3.x % 1);
-                            uvCoord3.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord3.y % 1);
-
-                            uvCoord4.x = Mathf.Lerp(uvOffset.xMin, uvOffset.xMax, uvCoord4.x % 1);
-                            uvCoord4.y = Mathf.Lerp(uvOffset.yMin, uvOffset.yMax, uvCoord4.y % 1);
-                        }
-                        
-                        uv1[i] = uvCoord1;
-                        if(uv2.Length > 0)
-                            uv2[i] = uvCoord2;
-                        if (uv3.Length > 0)
-                            uv3[i] = uvCoord3;
-                        if (uv4.Length > 0)
-                            uv4[i] = uvCoord4;
-
-                        updated[i] = true;
                     }
-                }
-                
-            }
 
-            mesh.uv1 = uv1;
-            mesh.uv2 = uv2;
-            mesh.uv3 = uv3;
-            mesh.uv4 = uv4;
+                }
+
+                mesh.uv1 = uv1;
+                mesh.uv2 = uv2;
+                mesh.uv3 = uv3;
+                mesh.uv4 = uv4;
+            }
         }
 
         static private WorkingTexture CreateEmptyTexture(int width, int height, Color color, bool linear, bool isNormal = false)
