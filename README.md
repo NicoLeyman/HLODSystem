@@ -41,11 +41,7 @@ Here is what HLODSystem can look like in a more complex scene.
 |Rate|16.87%|48.75%|
 
 ## How to use
-
-TODO: Replace with updated document
-
-Please refer to this document:
-[User Guide][userGuide]
+Please refer to this document:[User Guide][userGuide]
 
 TODO: Replace with modern demo project
 
@@ -91,4 +87,4 @@ Unless expressly provided otherwise, the Software under this license is made ava
 [badgesLink]: <https://badges.cds.internal.unity3d.com/badge-gallery/com.unity.hlod?branch=PackageTests&proxied=true>
 [demoProject]: <https://github.com/Unity-Technologies/HLODSystemDemo>
 [specDoc]: <https://docs.google.com/document/d/1OPYDNpwGFpkBorZ3GCpL9Z4ck-6qRRD1tzelUQ0UvFc>
-[userGuide]: <https://docs.google.com/document/d/18HgBIr8oJweKaXtsIHZlh0s5HuXvQVmVfVcMPHAYS1A>
+[userGuide]: <https://docs.google.com/document/d/1jZ9dforSSUTokTmprunayq7d3LUTv2aQK63IbtS-QzU>
