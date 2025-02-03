@@ -1,8 +1,8 @@
 {
   "name": "com.unity.hlod",
   "displayName": "HLOD System",
-  "version": "0.0.2-preview",
-  "unity": "2022.3",
+  "version": "0.0.3-preview",
+  "unity": "6000.0",
   "description": "Replaces multiple Static Mesh Actors with single, combined Static Mesh Actor at long view distances",
   "keywords": [
     "HLOD"

@@ -66,7 +66,7 @@ namespace Unity.HLODSystem
         {
             EditorGUI.BeginChangeCheck();
 
-            Shader = (Shader)EditorGUILayout.ObjectField(new GUIContent("Shader", "A value of null refers to the current render pipeline's default shader."), Shader, typeof(Shader), false);
+            Shader = (Shader)EditorGUILayout.ObjectField(new GUIContent("Shader", "A value of null equals the value of Preferences/HLOD/Default Shader."), Shader, typeof(Shader), false);
                 
             var resolvedShader = Shader != null ? Shader : Utils.GraphicsUtils.GetDefaultShader();
 

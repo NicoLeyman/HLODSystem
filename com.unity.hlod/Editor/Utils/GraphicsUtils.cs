@@ -55,7 +55,7 @@ namespace Unity.HLODSystem.Utils
         {
             string shaderName = null;
             
-            var defaultShader = HLODEditorSettings.DefaultShader.value;
+            var defaultShader = HLODEditorSettings.Instance.DefaultShader;
             if (defaultShader != null)
                 return defaultShader;
 

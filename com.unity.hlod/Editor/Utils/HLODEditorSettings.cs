@@ -1,43 +1,105 @@
+using System.Collections.Generic;
+using System.IO;
+using Unity.HLODSystem.Utils;
 using UnityEditor;
 using UnityEditor.SettingsManagement;
+using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.UIElements;
+using static Unity.HLODSystem.GUIUtils;
 
 namespace Unity.HLODSystem
 {
-    static class HLODEditorSettings
+    class HLODEditorSettings : ScriptableObject
     {
         const string k_PackageName = "com.unity.hlod";
+        public const string k_MyCustomSettingsPath = "Assets/HLOD/Editor/HLODSettings.asset";
 
-        static Settings s_Instance;
-
-        static Settings instance
-        {
-            get
+        private static HLODEditorSettings instance = null;
+        public static HLODEditorSettings Instance 
+        { 
+            get 
             {
-                if (s_Instance == null)
-                    s_Instance = new Settings(k_PackageName);
-
-                return s_Instance;
+                if (instance == null)
+                {
+                    instance = GetOrCreateSettings();
+                }
+                return instance;
             }
         }
 
-        [UserSetting("Simple Batcher","Default Shader", "A value of null equals the value of Preferences/HLOD/Default Shader.")]
-        public static UserSetting<Shader> DefaultShader = new UserSetting<Shader>(instance, "DefaultShader", null, SettingsScope.Project);
-        
-        [UserSetting("Simple Batcher","Default Material Mapping", "Default Material Mapping used by HLOD Components")]
-        public static UserSetting<MaterialMapping> DefaultMaterialMapping = new UserSetting<MaterialMapping>(instance, "DefaultMaterialMapping", null, SettingsScope.Project);
+        public bool OverrideDefaultShader;
+        public Shader DefaultShader;
+
+        public bool OverrideDefaultMaterialMapping;
+        public MaterialMapping DefaultMaterialMapping;
+
+        internal static HLODEditorSettings GetOrCreateSettings()
+        {
+            if (!AssetDatabase.AssetPathExists(k_MyCustomSettingsPath))
+            {
+                var folderPath = Path.Combine(Application.dataPath, Path.GetDirectoryName(k_MyCustomSettingsPath));
+                Debug.Log(folderPath);
+                Directory.CreateDirectory(folderPath);      
+            }
+
+            var settings = AssetDatabase.LoadAssetAtPath<HLODEditorSettings>(k_MyCustomSettingsPath);
+            if (settings == null)
+            {
+                settings = ScriptableObject.CreateInstance<HLODEditorSettings>();
+                AssetDatabase.CreateAsset(settings, k_MyCustomSettingsPath);
+                AssetDatabase.SaveAssets();
+            }
+            return settings;
+        }
+
+        internal static SerializedObject GetSerializedSettings()
+        {
+            return new SerializedObject(GetOrCreateSettings());
+        }
 
         static class HLODEditorSettingsProvider
         {
-            const string k_PreferencesPath = "Preferences/HLOD";
-        
             [SettingsProvider]
-            static SettingsProvider CreateSettingsProvider()
+            public static SettingsProvider CreateSettingsProvider()
             {
-                // The last parameter tells the provider where to search for settings.
-                var provider = new UserSettingsProvider(k_PreferencesPath,
-                    HLODEditorSettings.instance,
-                    new [] { typeof(HLODEditorSettingsProvider).Assembly });
+                const string k_PreferencesPath = "Preferences/HLOD";
+
+                var provider = new SettingsProvider(k_PreferencesPath, SettingsScope.User)
+                {
+                    label = "HLOD",
+                    activateHandler = (searchContext, rootElement) =>
+                    {
+                        var settings = HLODEditorSettings.GetSerializedSettings();
+
+                        var title = new Label()
+                        {
+                            text = "HLOD"
+                        };
+                        title.AddToClassList("title");
+                        rootElement.Add(title);
+
+                        var properties = new VisualElement()
+                        {
+                            style =
+                            {
+                                flexDirection = FlexDirection.Column
+                            }
+                        };
+                        properties.AddToClassList("property-list");
+                        rootElement.Add(properties);
+
+                        var simpleBatcherFoldout = new Foldout() { text = "Simple Batcher", value = true };
+                        properties.Add(simpleBatcherFoldout);
+
+                        simpleBatcherFoldout.Add(new OverridablePropertyElement(settings, nameof(DefaultShader), (bool o) => { return GraphicsUtils.GetDefaultShader().name; }, "Default Shader", "A value of null falls back to the current render pipeline's default shader."));
+                        simpleBatcherFoldout.Add(new PropertyField(settings.FindProperty(nameof(DefaultMaterialMapping)), "Default Material Mapping") { tooltip = "Default Material Mapping referenced by HLOD Components using the Simple Batcher" });
+
+                        rootElement.Bind(settings);
+                    },
+
+                    keywords = new HashSet<string>(new[] { "HLOD", "MaterialMapping" })
+                };
 
                 return provider;
             }

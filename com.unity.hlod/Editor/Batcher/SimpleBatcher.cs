@@ -179,7 +179,7 @@ namespace Unity.HLODSystem
             // Resolve material mapping
             if (materialMapping == null)
             {
-                materialMapping = HLODEditorSettings.DefaultMaterialMapping;
+                materialMapping = HLODEditorSettings.Instance.DefaultMaterialMapping;
             }
             List<TextureInfo> textureInfoList = materialMapping.TextureInfoList;
             using (MaterialTextureCache cache = new MaterialTextureCache(materialMapping))
@@ -283,7 +283,7 @@ namespace Unity.HLODSystem
             // Resolve material mapping
             if (materialMapping == null)
             {
-                materialMapping = HLODEditorSettings.DefaultMaterialMapping;
+                materialMapping = HLODEditorSettings.Instance.DefaultMaterialMapping;
             }
 
             List<MeshCombiner.CombineInfo> combineInfos = new List<MeshCombiner.CombineInfo>();
@@ -539,7 +539,7 @@ namespace Unity.HLODSystem
             // Resolve material mapping
             if (materialMapping == null)
             {
-                materialMapping = HLODEditorSettings.DefaultMaterialMapping;
+                materialMapping = HLODEditorSettings.Instance.DefaultMaterialMapping;
             }
 
             EditorGUILayout.EndHorizontal();

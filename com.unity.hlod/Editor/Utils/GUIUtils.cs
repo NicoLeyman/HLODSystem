@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
+using static Unity.HLODSystem.GUIUtils;
 
 namespace Unity.HLODSystem
 {
@@ -54,5 +57,50 @@ namespace Unity.HLODSystem
             path = AssetDatabase.GetAssetPath(asset);
             return AssetDatabase.AssetPathToGUID(path);
         }
+
+        public class OverridablePropertyElement : VisualElement
+        {
+            PropertyField OverrideField;
+            PropertyField ValueField;
+            Label ResolvedValueLabel;
+            Func<bool, string> ResolvedValueLabelOnOverrideChange;
+
+            public OverridablePropertyElement(SerializedObject serializedObject, string valueName, Func<bool, string> resolvedLabelOnOverrideChange, string label, string tooltip)
+            {
+                this.tooltip = tooltip;
+                style.flexDirection = FlexDirection.Row;
+                Add(new Label() { text = valueName });
+                // Create drawer UI using C#.
+                var overrideProperty = serializedObject.FindProperty($"Override{valueName}");
+                OverrideField = new PropertyField(overrideProperty, "");
+                Add(OverrideField);
+                ValueField = new PropertyField(serializedObject.FindProperty(valueName), "");
+                Add(ValueField);
+
+                ResolvedValueLabel = new Label();
+                Add(ResolvedValueLabel);
+                ResolvedValueLabelOnOverrideChange = resolvedLabelOnOverrideChange;
+
+                OverrideField.RegisterValueChangeCallback((e) =>
+                {
+                    OnOverrideToggled(e.changedProperty.boolValue);
+                });
+
+                OnOverrideToggled(overrideProperty.boolValue);
+            }
+
+            void OnOverrideToggled(bool newValue)
+            {
+                ValueField.enabledSelf = newValue;
+                ResolvedValueLabel.visible = !newValue;
+
+                if (ResolvedValueLabelOnOverrideChange != null)
+                {
+                    ResolvedValueLabel.text = ResolvedValueLabelOnOverrideChange.Invoke(newValue);
+                }
+            }
+        }
+        
+       
     }
 }
