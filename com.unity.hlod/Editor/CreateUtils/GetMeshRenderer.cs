@@ -89,6 +89,9 @@ namespace Unity.HLODSystem
                     if (max < minObjectSize)
                         continue;
 
+                    if (mr.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly)
+                        continue;
+
                     m_resultMeshRenderers.Add((mr, mf));
                 }
 
@@ -112,6 +115,9 @@ namespace Unity.HLODSystem
                     if(mf == null) 
                         continue;
 
+                    if (renderer.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly)
+                        continue;
+
                     m_resultMeshRenderers.Add((renderer, mf));
                 }
                 RemoveUnderMeshSetters(setter);
@@ -129,6 +135,9 @@ namespace Unity.HLODSystem
                         continue;
 
                     if (mr.gameObject.activeInHierarchy == false || mr.enabled == false)
+                        continue;
+
+                    if (mr.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly)
                         continue;
 
                     float max = Mathf.Max(mr.bounds.size.x, mr.bounds.size.y, mr.bounds.size.z);
