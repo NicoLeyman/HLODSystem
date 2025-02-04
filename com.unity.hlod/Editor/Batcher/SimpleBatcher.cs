@@ -62,6 +62,9 @@ namespace Unity.HLODSystem
             private bool m_enableTintColor;
             private string m_tintColorName;
             private string m_outputTextureToTintName;
+            private bool m_shouldUseTransparency;
+
+            public bool ShouldUseTransparency => m_shouldUseTransparency;
             
             public MaterialTextureCache(MaterialMapping mapping)
             {
@@ -141,6 +144,8 @@ namespace Unity.HLODSystem
                 }
 
                 m_textureCache.Add(material.Guid, materialTexture);
+
+                m_shouldUseTransparency |= material.UsesTransparency;
             }
             private void ApplyTintColor(WorkingTexture texture, Color tintColor)
             {
@@ -181,6 +186,9 @@ namespace Unity.HLODSystem
             {
                 materialMapping = HLODEditorSettings.Instance.DefaultMaterialMapping;
             }
+
+            bool sourceMaterialsUseTransparency = false;
+
             List<TextureInfo> textureInfoList = materialMapping.TextureInfoList;
             using (MaterialTextureCache cache = new MaterialTextureCache(materialMapping))
             {
@@ -214,6 +222,8 @@ namespace Unity.HLODSystem
                     if (onProgress != null)
                         onProgress(((float) i / targets.Count) * 0.1f);
                 }
+
+                sourceMaterialsUseTransparency |= cache.ShouldUseTransparency;
             }
 
             packer.Pack(TextureFormat.RGBA32, options.PackTextureSize, options.LimitTextureSize, false);
@@ -240,14 +250,14 @@ namespace Unity.HLODSystem
                     }
                 }
 
-                WorkingMaterial mat = CreateMaterial(options.MaterialGUID, textures);
+                WorkingMaterial mat = CreateMaterial(options.MaterialGUID, textures, (bool)options.AllowAlphaClipping && sourceMaterialsUseTransparency);
                 mat.Name = "CombinedMaterial " + index;
                 m_createdMaterials.Add(atlas, mat);
                 index += 1;
             }
         }
 
-        static WorkingMaterial CreateMaterial(string guidstr, Dictionary<string, WorkingTexture> textures)
+        static WorkingMaterial CreateMaterial(string guidstr, Dictionary<string, WorkingTexture> textures, bool enableAlphaClipping)
         {
             WorkingMaterial material = null;
             string path = AssetDatabase.GUIDToAssetPath(guidstr);
@@ -268,6 +278,19 @@ namespace Unity.HLODSystem
             foreach (var texture in textures)
             {
                 material.AddTexture(texture.Key, texture.Value.Clone());
+            }
+
+            const string alphaTestKeyword = "_ALPHATEST_ON";
+
+            var actualMat = material.ToMaterial();
+            if(enableAlphaClipping)
+            {
+                actualMat.EnableKeyword(alphaTestKeyword);
+                actualMat.SetFloat("_AlphaClip", 0);
+            }
+            else
+            {
+                actualMat.DisableKeyword(alphaTestKeyword);
             }
             
             return material;
@@ -483,6 +506,8 @@ namespace Unity.HLODSystem
                 batcherOptions.LimitTextureSize = 128;
             if (batcherOptions.MaterialGUID == null)
                 batcherOptions.MaterialGUID = "";
+            if (batcherOptions.AllowAlphaClipping == null)
+                batcherOptions.AllowAlphaClipping = true;
             //if (batcherOptions.TextureInfoList == null)
             //{
             //    batcherOptions.TextureInfoList = new List<TextureInfo>(){
@@ -521,6 +546,10 @@ namespace Unity.HLODSystem
             mat = EditorGUILayout.ObjectField("Material", mat, typeof(Material), false) as Material;
             if( mat == null)
                 mat = new Material(GraphicsUtils.GetDefaultShader());
+            
+            batcherOptions.AllowAlphaClipping = EditorGUILayout.Toggle(new GUIContent("Allow Alpha Clipping", 
+            "Allows the batcher to enable Alpha Clipping on the HLOD material if any of the source materials use transparancy.") ,
+             (bool)batcherOptions.AllowAlphaClipping);
             
             path = AssetDatabase.GetAssetPath(mat);
             matGUID = AssetDatabase.AssetPathToGUID(path);

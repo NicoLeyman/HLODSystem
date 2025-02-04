@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Unity.HLODSystem.Utils
 {
@@ -41,6 +42,7 @@ namespace Unity.HLODSystem.Utils
             get { return m_buffer.Identifier; }
         }
 
+        public bool UsesTransparency => m_buffer.UsesTransparency;
 
 
         private WorkingMaterial()
@@ -182,6 +184,8 @@ namespace Unity.HLODSystem.Utils
         private DisposableDictionary<string, WorkingTexture> m_textures;
         private Dictionary<string, Color> m_colors;
 
+        private bool m_UsesTransparency;
+
         public string Name
         {
             get => m_name;
@@ -198,6 +202,10 @@ namespace Unity.HLODSystem.Utils
             }
         }
 
+        public bool UsesTransparency
+        {
+            get => m_UsesTransparency;
+        }
 
         private WorkingMaterialBuffer(Allocator allocator)
         {
@@ -244,6 +252,8 @@ namespace Unity.HLODSystem.Utils
                     }
                 }
             }
+
+            m_UsesTransparency = shader.renderQueue >= (int)RenderQueue.AlphaTest;
         }
         public WorkingMaterialBuffer(Allocator allocator, int materialId, string name) : this(allocator)
         {
