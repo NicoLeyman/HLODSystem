@@ -13,7 +13,7 @@ namespace Unity.HLODSystem
     class HLODEditorSettings : ScriptableObject
     {
         const string k_PackageName = "com.unity.hlod";
-        public const string k_MyCustomSettingsPath = "Assets/HLOD/Editor/HLODSettings.asset";
+        public const string k_MyCustomSettingsPath = "HLOD/Editor/HLODSettings.asset";
 
         private static HLODEditorSettings instance = null;
         public static HLODEditorSettings Instance 
@@ -36,18 +36,18 @@ namespace Unity.HLODSystem
 
         internal static HLODEditorSettings GetOrCreateSettings()
         {
-            if (!AssetDatabase.AssetPathExists(k_MyCustomSettingsPath))
+            var folderPath = Path.Combine(Application.dataPath, Path.GetDirectoryName(k_MyCustomSettingsPath));
+            if (!Directory.Exists(folderPath))
             {
-                var folderPath = Path.Combine(Application.dataPath, Path.GetDirectoryName(k_MyCustomSettingsPath));
-                Debug.Log(folderPath);
                 Directory.CreateDirectory(folderPath);      
             }
 
-            var settings = AssetDatabase.LoadAssetAtPath<HLODEditorSettings>(k_MyCustomSettingsPath);
+            var projectPath = "Assets/" + k_MyCustomSettingsPath;
+            var settings = AssetDatabase.LoadAssetAtPath<HLODEditorSettings>(projectPath);
             if (settings == null)
             {
                 settings = ScriptableObject.CreateInstance<HLODEditorSettings>();
-                AssetDatabase.CreateAsset(settings, k_MyCustomSettingsPath);
+                AssetDatabase.CreateAsset(settings, projectPath);
                 AssetDatabase.SaveAssets();
             }
             return settings;
