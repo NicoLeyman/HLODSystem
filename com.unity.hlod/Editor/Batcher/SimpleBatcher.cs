@@ -145,7 +145,7 @@ namespace Unity.HLODSystem
 
                 m_textureCache.Add(material.Guid, materialTexture);
 
-                m_shouldUseTransparency |= material.UsesTransparency;
+                m_shouldUseTransparency |= material.EnableAlphaClipping;
             }
             private void ApplyTintColor(WorkingTexture texture, Color tintColor)
             {
@@ -280,18 +280,7 @@ namespace Unity.HLODSystem
                 material.AddTexture(texture.Key, texture.Value.Clone());
             }
 
-            const string alphaTestKeyword = "_ALPHATEST_ON";
-
-            var actualMat = material.ToMaterial();
-            if(enableAlphaClipping)
-            {
-                actualMat.EnableKeyword(alphaTestKeyword);
-                actualMat.SetFloat("_AlphaClip", 0);
-            }
-            else
-            {
-                actualMat.DisableKeyword(alphaTestKeyword);
-            }
+            material.EnableAlphaClipping = enableAlphaClipping;
             
             return material;
         }

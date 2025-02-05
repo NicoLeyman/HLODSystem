@@ -42,8 +42,11 @@ namespace Unity.HLODSystem.Utils
             get { return m_buffer.Identifier; }
         }
 
-        public bool UsesTransparency => m_buffer.UsesTransparency;
-
+        public bool EnableAlphaClipping
+        {
+            get { return m_buffer.EnableAlphaClipping; }
+            set { m_buffer.EnableAlphaClipping = value; }
+        }
 
         private WorkingMaterial()
         {
@@ -184,7 +187,7 @@ namespace Unity.HLODSystem.Utils
         private DisposableDictionary<string, WorkingTexture> m_textures;
         private Dictionary<string, Color> m_colors;
 
-        private bool m_UsesTransparency;
+        private bool m_enableAlphaClipping;
 
         public string Name
         {
@@ -202,9 +205,10 @@ namespace Unity.HLODSystem.Utils
             }
         }
 
-        public bool UsesTransparency
+        public bool EnableAlphaClipping
         {
-            get => m_UsesTransparency;
+            get { return m_enableAlphaClipping; }
+            set { m_enableAlphaClipping = value; }
         }
 
         private WorkingMaterialBuffer(Allocator allocator)
@@ -253,7 +257,7 @@ namespace Unity.HLODSystem.Utils
                 }
             }
 
-            m_UsesTransparency = shader.renderQueue >= (int)RenderQueue.AlphaTest;
+            m_enableAlphaClipping = shader.renderQueue >= (int)RenderQueue.AlphaTest;
         }
         public WorkingMaterialBuffer(Allocator allocator, int materialId, string name) : this(allocator)
         {

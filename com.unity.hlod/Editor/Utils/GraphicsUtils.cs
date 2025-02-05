@@ -74,5 +74,27 @@ namespace Unity.HLODSystem.Utils
 
             return shaderName == null ? null : Shader.Find(shaderName);
         }
+
+        public static void EnableAlphaClipping(Material mat, bool enable)
+        {
+            const string alphaTestKeyword = "_ALPHATEST_ON";
+            const string alphaClipKeyword = "_AlphaClip";
+            const string alphaToMaskKeyword = "_AlphaToMask";
+
+            if (enable)
+            {
+                mat.EnableKeyword(alphaTestKeyword);
+                mat.SetFloat(alphaClipKeyword, 1);
+                mat.SetFloat(alphaToMaskKeyword, 1);
+                mat.renderQueue = (int)RenderQueue.AlphaTest;
+            }
+            else
+            {
+                mat.DisableKeyword(alphaTestKeyword);
+                mat.SetFloat(alphaClipKeyword, 0);
+                mat.SetFloat(alphaToMaskKeyword, 0);
+                mat.renderQueue = (int)RenderQueue.Geometry;
+            }
+        }
     }
 }

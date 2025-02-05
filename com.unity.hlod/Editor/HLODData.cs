@@ -228,6 +228,7 @@ namespace Unity.HLODSystem
         public class SerializableMaterial
         {
             [SerializeField] private string m_name;
+            [SerializeField] private bool m_alphaClipping;
             [SerializeField] private string m_id;
             [SerializeField] private string m_assetGuid;
             [SerializeField] private string m_jsonData;
@@ -237,6 +238,8 @@ namespace Unity.HLODSystem
             {
                 get { return m_id; }
             }
+
+            public bool AlphaClipping => m_alphaClipping;
 
             public void AddTexture(SerializableTexture texture)
             {
@@ -261,6 +264,7 @@ namespace Unity.HLODSystem
             public void From(WorkingMaterial material)
             {
                 m_name = material.Name;
+                m_alphaClipping = material.EnableAlphaClipping;
                 bool needWrite = material.NeedWrite();
                 if (needWrite)
                 {
@@ -285,6 +289,7 @@ namespace Unity.HLODSystem
                     Material mat = new Material(GraphicsUtils.GetDefaultShader());
                     EditorJsonUtility.FromJsonOverwrite(m_jsonData, mat);
                     mat.name = m_name;
+                    GraphicsUtils.EnableAlphaClipping(mat, m_alphaClipping);
                     return mat;
                 }
                 else
