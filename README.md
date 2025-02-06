@@ -6,8 +6,9 @@ Treat it with the same skepticism as you would any sample snippet found on a bar
 While I've tried to address version compatiblity, support for Scriptable Render Pipelines and various UX issues, many other issues (new and old) remain.
 
 ### Latest Version: v0.0.3
-* [Simple Batcher]: Added a setting (default true) that enables Alpha Clipping on HLOD materials if any of the source materials use transparency.
+* Simple Batcher: Added a setting (default true) that enables Alpha Clipping on HLOD materials if any of the source materials use transparency.
 * Shadow proxies are now ignored when gathering MeshRenderers. Fixes these showing up in the generated HLOD meshes as untextured chunks of geometry that Z-fight.
+* Added an HLOD menu bar with buttons to regenerate or destroy all HLODs in the scene.
 
 # HLOD system
 The idea of a Hierarchical Level Of Detail system is to improve performance by simplifying the scene hierarchy as the distance from the camera increases.
@@ -33,21 +34,21 @@ Of course, more precise generation will allow using HLODs of the same cost (geom
 | --- | --- | --- |
 | ![](Documentation~/Images/overview_1.jpg) | ![](Documentation~/Images/overview_2.jpg)  | ![](Documentation~/Images/overview_3.jpg)|
 
-Here is what HLODSystem can look like in a more complex scene.
-![](Documentation~/Images/compare.gif)
+Comparison between HLOD System On/Off.
+![](Documentation~/Images/SteamDeck_Release_OnOffComp.gif)
+Captured using a release build of the [demo project][demoProject] on a Steam Deck (LCD).
+Uses the Simple Batcher to combine objects and relies on standard Unity LOD groups for the geometry simplification.
 
-||DrawCalls|Tris|
-|---|---|---|
-|Normal|5642|8.0M|
-|HLOD|952|3.9M|
-|Rate|16.87%|48.75%|
+||DrawCalls|Verts|FPS|CPU ms|GPU ms|
+|---|---|---|---|---|---|
+|HLOD Off|5248|13.4M|36.5|13.2|16.8|
+|HLOD On|223|6.4M|53.0|7.3|17.3|
+|Ratio|4.25%|47.76%|145.21%|55.30%|102.98%|
 
 ## How to use
 Please refer to this document:[User Guide][userGuide]
 
-TODO: Replace with modern demo project
-
-Also, you can check out [this project][demoProject] that integrates HLOD into the 3D game kit.
+Also, you can check out this version of the [Fantasy Kingdom][demoProject] demo project that integrates HLOD into the 3D game kit.
 
 ## Prerequisites
 ### Unity
