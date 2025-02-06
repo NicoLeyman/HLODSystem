@@ -5,7 +5,9 @@ Treat it with the same skepticism as you would any sample snippet found on a bar
 
 While I've tried to address version compatiblity, support for Scriptable Render Pipelines and various UX issues, many other issues (new and old) remain.
 
-//TODO: Version bump and release notes
+### Latest Version: v0.0.3
+* [Simple Batcher]: Added a setting (default true) that enables Alpha Clipping on HLOD materials if any of the source materials use transparency.
+* Shadow proxies are now ignored when gathering MeshRenderers. Fixes these showing up in the generated HLOD meshes as untextured chunks of geometry that Z-fight.
 
 # HLOD system
 The idea of a Hierarchical Level Of Detail system is to improve performance by simplifying the scene hierarchy as the distance from the camera increases.
@@ -52,27 +54,14 @@ Also, you can check out [this project][demoProject] that integrates HLOD into th
 ```
 Unity Version: 6000.0.35f1
 ```
-
-### Git 
-
-You need a Git Client which can work with GitHub.
-If you don't have Git installed on your machine, download and install it from [Git Home][gitHome].
-
-### Connecting to GitHub with SSH
-To clone the project, your Git must be configured to work with SSH Authentication, as HLODSystem uses SSH Authentication to work with Git Submodules. Check [this][gitSSHSetup] link to set up your git to use SSH to connect to GitHub. 
-
-## Getting the project
-### Cloning
-The project uses a number of other projects as dependencies, and they are included into it as Git Submodules.
-To have a fully working project, you should get those submodules included into the project after you clone the project.
-
-First, run the following command to clone the project:
-```sh
-$ git clone git@github.com:NicoLeyman/HLODSystem.git
+### How To Install
+Using the Package Manager's install using git URL function, add the following URL:
 ```
-After cloning is finished, navigate to the root folder of the project, and run the following command to initialize and clone all submodules:
-```sh
-$ git submodule update --init --recursive
+https://github.com/NicoLeyman/HLODSystem.git?path=/com.unity.hlod
+```
+The following URL adds the additional package for Addressables support:
+```
+https://github.com/NicoLeyman/HLODSystem.git?path=/com.unity.hlod.addressable
 ```
 
 ### License
@@ -81,10 +70,6 @@ Licensed under the Unity Companion License for Unity-dependent projects see [Uni
 Unless expressly provided otherwise, the Software under this license is made available strictly on an **“AS IS”** BASIS WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. Please review the license for details on these and other terms and conditions.
 
 [license]: <https://unity3d.com/legal/licenses/Unity_Companion_License>
-[gitHome]:<https://git-scm.com/downloads>
-[gitSSHSetup]: <https://help.github.com/articles/connecting-to-github-with-ssh/>
-[sampleBranch]: <https://github.com/Unity-Technologies/HLODSystem/tree/samples>
-[badgesLink]: <https://badges.cds.internal.unity3d.com/badge-gallery/com.unity.hlod?branch=PackageTests&proxied=true>
 [demoProject]: <https://github.com/Unity-Technologies/HLODSystemDemo>
 [specDoc]: <https://docs.google.com/document/d/1OPYDNpwGFpkBorZ3GCpL9Z4ck-6qRRD1tzelUQ0UvFc>
 [userGuide]: <https://docs.google.com/document/d/1jZ9dforSSUTokTmprunayq7d3LUTv2aQK63IbtS-QzU>
