@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class HLODMenu
 {
-    [MenuItem("HLOD/Regenerate All HLODs")]
-    public static void RegenerateAllHLODs()
+    [MenuItem("HLOD/Regenerate Scene HLODs")]
+    public static void RegenerateSceneHLODs()
     {
             var hlods = GameObject.FindObjectsByType<HLOD>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
 
@@ -14,5 +14,16 @@ public class HLODMenu
             {
                 CoroutineRunner.RunCoroutine(HLODCreator.Create(hlod));
             }
+    }
+
+    [MenuItem("HLOD/Destroy Scene HLODs")]
+    public static void DestroySceneHLODs()
+    {
+        var hlods = GameObject.FindObjectsByType<HLOD>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
+
+        foreach (var hlod in hlods)
+        {
+            CoroutineRunner.RunCoroutine(HLODCreator.Destroy(hlod));
+        }
     }
 }

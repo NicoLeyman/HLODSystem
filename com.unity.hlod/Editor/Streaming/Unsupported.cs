@@ -337,6 +337,18 @@ namespace Unity.HLODSystem.Streaming
             return root;
         }
 
+        static string GetDefaultOutputPath()
+        {
+            string path = Application.dataPath;
+            path = "Assets" + path.Substring(Application.dataPath.Length);
+            path = path.Replace('\\', '/');
+            path = Path.Combine(path, "HLOD", "GeneratedHLODData");
+            if (path.EndsWith("/") == false)
+                path += "/";
+
+            return path;
+        }
+
         static bool showFormat = true;
         public static void OnGUI(SerializableDynamicObject streamingOptions)
         {
@@ -346,12 +358,7 @@ namespace Unity.HLODSystem.Streaming
 #region Setup default values
             if (options.OutputDirectory == null)
             {
-                string path = Application.dataPath;
-                path = "Assets" + path.Substring(Application.dataPath.Length);
-                path = path.Replace('\\', '/');
-                if (path.EndsWith("/") == false)
-                    path += "/";
-                options.OutputDirectory = path;
+                options.OutputDirectory = GetDefaultOutputPath();
             }
 
             if (options.PCCompression == null)
