@@ -3,12 +3,7 @@ This is a fork of the original HLOD repo from 2019. This package is in no way in
 It is intended as a potential starting point/reference for users who wish to implement a custom HLOD system in their projects.
 Treat it with the same skepticism as you would any sample snippet found on a barely maintained docs page.
 
-While I've tried to address version compatiblity, support for Scriptable Render Pipelines and various UX issues, many other issues (new and old) remain.
-
-### Latest Version: v0.0.3
-* Simple Batcher: Added a setting (default true) that enables Alpha Clipping on HLOD materials if any of the source materials use transparency.
-* Shadow proxies are now ignored when gathering MeshRenderers. Fixes these showing up in the generated HLOD meshes as untextured chunks of geometry that Z-fight.
-* Added an HLOD menu bar with buttons to regenerate or destroy all HLODs in the scene.
+While I've tried to address version compatiblity, add support for Scriptable Render Pipelines and fix various issues, many other issues (new and old) remain.
 
 # HLOD system
 The idea of a Hierarchical Level Of Detail system is to improve performance by simplifying the scene hierarchy as the distance from the camera increases.
@@ -44,6 +39,24 @@ Uses the Simple Batcher to combine objects and relies on standard Unity LOD grou
 |HLOD Off|5248|13.4M|36.5|13.2|16.8|
 |HLOD On|223|6.4M|53.0|7.3|17.3|
 |Ratio|4.25%|47.76%|145.21%|55.30%|102.98%|
+
+## Latest Version: v0.0.3
+* Simple Batcher: Added a setting (default true) that enables Alpha Clipping on HLOD materials if any of the source materials use transparency.
+* Shadow proxies are now ignored when gathering MeshRenderers. Fixes these showing up in the generated HLOD meshes as untextured chunks of geometry that Z-fight.
+* Added an HLOD menu bar with buttons to regenerate or destroy all HLODs in the scene.
+
+### Issues:
+There's lots of known and unknown issues, keep in mind that this is not intended to be a remotely production ready solution.
+If you intend to use this for your project, you know also own all of the issues that come with it:
+
+* Simple Batcher doesn't handle tiling texture coordinates well, resulting in warping as they'll be clamped to the atlas UV space assigned to them.
+* The new Material Mapping UX is a *little* messy.
+* Per-HLOD shader overrides are currently untested and unlikely to work.
+* The HLOD LOD distance set up automatically at generation time is usually too conservative, preserving visual quality but without offering any performance gains.
+* The HLOD LOD distance is also hard to reason about when tweaking manually, as it depends on the quality and other settings.
+* The HLOD Component contains a lot of data that ends up in the scene file. This can make small changes result in large commits when using a version control system.
+* The HLOD Data asset gets rather large, no effort has been made yet to optimize this.
+* Addressables haven't been tested post-U6 upgrade (v0.0.3)
 
 ## How to use
 Please refer to this document:[User Guide][userGuide]
