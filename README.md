@@ -7,7 +7,7 @@ While I've tried to address version compatiblity, add support for Scriptable Ren
 
 # HLOD system
 The idea of a Hierarchical Level Of Detail system is to improve performance by simplifying the scene hierarchy as the distance from the camera increases.
-By combining all of the static objects in a scene, and dividing the resulting mesh using a quadtree or octree, we can replace many objects without (very) noticeable quality loss.
+By combining all of the static objects in a scene, and dividing the resulting mesh using a quadtree or octree, we can replace many objects without a (very) noticeable loss of quality.
 * Improves rendering performance by reducing the number of draw calls.
 
 This HLOD system includes an interface for a swappable batcher. The batcher is responsible for combining objects to build the HLOD tree structure meshes. The behavior of the used batcher can further affect performance.
@@ -23,9 +23,7 @@ A note on HLOD quality:
 Artifacts in the HLOD generation such as texture coordinate stretching or missing polygons can be non-issues in the end due to their actual size on screen and limited contribution to the final pixel color due to effects like fog, lighting and post-processing.
 Of course, more precise generation will allow using HLODs of the same cost (geometric and texture complexity) at distances closer to the camera, offering better performance gains. 
 
-[Specification Document][specDoc]
-
-| Render image  | Show draw calls | Show draw calls of HLOD |
+| Rendered image  | Draw calls | HLOD Draw calls |
 | --- | --- | --- |
 | ![](Documentation~/Images/overview_1.jpg) | ![](Documentation~/Images/overview_2.jpg)  | ![](Documentation~/Images/overview_3.jpg)|
 
@@ -58,17 +56,19 @@ If you intend to use this for your project, you know also own all of the issues 
 * The HLOD Data asset gets rather large, no effort has been made yet to optimize this.
 * Addressables haven't been tested post-U6 upgrade (v0.0.3)
 
-## How to use
-Please refer to this document:[User Guide][userGuide]
+## Getting Started
+For details on how to use the HLOD System, please refer to this guide: [User Guide][userGuide]
 
-Also, you can check out this version of the [Fantasy Kingdom][demoProject] demo project that integrates HLOD into the 3D game kit.
+The [HLOD Specification Document][specDoc] contains more information on how HLOD works as a concept.
+
+Make sure to check out this version of the [Fantasy Kingdom][demoProject] demo project that integrates HLOD.
 
 ## Prerequisites
 ### Unity
 ```
 Unity Version: 6000.0.35f1
 ```
-### How To Install
+### How To Install Using Package Manager
 Using the Package Manager's install using git URL function, add the following URL:
 ```
 https://github.com/NicoLeyman/HLODSystem.git?path=/com.unity.hlod
@@ -85,5 +85,5 @@ Unless expressly provided otherwise, the Software under this license is made ava
 
 [license]: <https://unity3d.com/legal/licenses/Unity_Companion_License>
 [demoProject]: <https://github.com/Unity-Technologies/HLODSystemDemo>
-[specDoc]: <https://docs.google.com/document/d/1OPYDNpwGFpkBorZ3GCpL9Z4ck-6qRRD1tzelUQ0UvFc>
+[specDoc]: <https://docs.google.com/document/d/1RzIvdiISPzoW_Tp6_Qia4Zt7fcl6ehoXTpVGLIFZ49A>
 [userGuide]: <https://docs.google.com/document/d/1jZ9dforSSUTokTmprunayq7d3LUTv2aQK63IbtS-QzU>
