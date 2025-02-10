@@ -45,7 +45,7 @@ Uses the Simple Batcher to combine objects and relies on standard Unity LOD grou
 
 ### Issues:
 There's lots of known and unknown issues, keep in mind that this is not intended to be a remotely production ready solution.
-If you intend to use this for your project, you know also own all of the issues that come with it:
+If you intend to use this for your project, you also own all of the issues that come with it:
 
 * Simple Batcher doesn't handle tiling texture coordinates well, resulting in warping as they'll be clamped to the atlas UV space assigned to them.
 * The new Material Mapping UX is a *little* messy.
