@@ -231,6 +231,7 @@ namespace Unity.HLODSystem
             [SerializeField] private bool m_alphaClipping;
             [SerializeField] private string m_id;
             [SerializeField] private string m_assetGuid;
+            [SerializeField] private string m_shaderName;
             [SerializeField] private string m_jsonData;
             [SerializeField] private List<SerializableTexture> m_textures;
 
@@ -280,13 +281,14 @@ namespace Unity.HLODSystem
                 }
 
                 m_id = material.Guid;
+                m_shaderName = material.ShaderName;
             }
 
             public Material To()
             {
                 if (string.IsNullOrEmpty(m_assetGuid))
                 {
-                    Material mat = new Material(GraphicsUtils.GetDefaultShader());
+                    Material mat = new Material(Shader.Find(m_shaderName));
                     EditorJsonUtility.FromJsonOverwrite(m_jsonData, mat);
                     mat.name = m_name;
                     GraphicsUtils.EnableAlphaClipping(mat, m_alphaClipping);

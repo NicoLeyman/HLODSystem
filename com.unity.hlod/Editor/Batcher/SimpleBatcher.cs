@@ -179,12 +179,18 @@ namespace Unity.HLODSystem
         }
 
         private void PackingTexture(TexturePacker packer, DisposableList<HLODBuildInfo> targets, dynamic options, Action<float> onProgress)
-        { 
-            MaterialMapping materialMapping = options.MaterialMapping;
-            // Resolve material mapping
-            if (materialMapping == null)
+        {
+            string materialMappingGUID = options.MaterialMappingGUID;
+            MaterialMapping materialMapping;
+
+            if (string.IsNullOrEmpty(materialMappingGUID))
             {
                 materialMapping = HLODEditorSettings.Instance.DefaultMaterialMapping;
+            }
+            else
+            {
+                var materialMappingPath = AssetDatabase.GUIDToAssetPath(materialMappingGUID);
+                materialMapping = AssetDatabase.LoadAssetAtPath<MaterialMapping>(materialMappingPath);
             }
 
             bool sourceMaterialsUseTransparency = false;
@@ -250,20 +256,38 @@ namespace Unity.HLODSystem
                     }
                 }
 
-                WorkingMaterial mat = CreateMaterial(options.MaterialGUID, textures, (bool)options.AllowAlphaClipping && sourceMaterialsUseTransparency);
-                mat.Name = "CombinedMaterial " + index;
-                m_createdMaterials.Add(atlas, mat);
+                Material mat = null;
+
+                string matGUID = options.MaterialGUID;
+                string path = "";
+                if (string.IsNullOrEmpty(matGUID) == false)
+                {
+                    path = AssetDatabase.GUIDToAssetPath(matGUID);
+                    mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+                }
+                else
+                {
+                    var shader = materialMapping.Shader;
+                    if (shader == null)
+                        shader = GraphicsUtils.GetDefaultShader();
+
+                    mat = new Material(shader);
+                }
+
+                WorkingMaterial wm = CreateMaterial(options.MaterialGUID, textures, (bool)options.AllowAlphaClipping && sourceMaterialsUseTransparency, mat);
+                wm.Name = "CombinedMaterial " + index;
+                m_createdMaterials.Add(atlas, wm);
                 index += 1;
             }
         }
 
-        static WorkingMaterial CreateMaterial(string guidstr, Dictionary<string, WorkingTexture> textures, bool enableAlphaClipping)
+        static WorkingMaterial CreateMaterial(string guidstr, Dictionary<string, WorkingTexture> textures, bool enableAlphaClipping, Material mat)
         {
             WorkingMaterial material = null;
             string path = AssetDatabase.GUIDToAssetPath(guidstr);
             if (string.IsNullOrEmpty(path) == false)
             {
-                Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+                mat = AssetDatabase.LoadAssetAtPath<Material>(path);
                 if (mat != null)
                 {
                     material = new WorkingMaterial(Allocator.Invalid, mat.GetInstanceID(), mat.name);
@@ -272,7 +296,7 @@ namespace Unity.HLODSystem
 
             if (material == null)
             {
-                material = new WorkingMaterial(Allocator.Persistent, new Material(GraphicsUtils.GetDefaultShader()));
+                material = new WorkingMaterial(Allocator.Persistent, mat);
             }
             
             foreach (var texture in textures)
@@ -551,7 +575,7 @@ namespace Unity.HLODSystem
                 batcherOptions.FoldoutMapping = false;
 
             batcherOptions.FoldoutMapping = EditorGUILayout.Foldout((bool)batcherOptions.FoldoutMapping, "Material Mapping");
-            batcherOptions.MaterialMappingGUID = GUIUtils.DynamicAssetPropertyGUI<MaterialMapping>(null, batcherOptions.MaterialMappingGUID, null);
+            batcherOptions.MaterialMappingGUID = GUIUtils.DynamicAssetPropertyGUI<MaterialMapping>(null, batcherOptions.MaterialMappingGUID, null, out materialMapping);
             batcherOptions.MaterialMapping = materialMapping;
             
             // Resolve material mapping

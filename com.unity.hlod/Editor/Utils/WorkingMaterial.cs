@@ -33,6 +33,10 @@ namespace Unity.HLODSystem.Utils
         {
             get { return m_buffer.Guid; }
         }
+        public string ShaderName
+        {
+            get { return m_buffer.ShaderName; }
+        }
         public int InstanceID
         {
             get { return m_buffer.InstanceID; }
@@ -183,6 +187,7 @@ namespace Unity.HLODSystem.Utils
         private Allocator m_allocator;
         private string m_name;
         private string m_guid;
+        private string m_shaderName;
         private int m_instanceID;
         private DisposableDictionary<string, WorkingTexture> m_textures;
         private Dictionary<string, Color> m_colors;
@@ -195,6 +200,7 @@ namespace Unity.HLODSystem.Utils
             set => m_name = value;
         }
         public string Guid => m_guid;
+        public string ShaderName => m_shaderName;
         public int InstanceID => m_instanceID;
 
         public string Identifier
@@ -232,7 +238,7 @@ namespace Unity.HLODSystem.Utils
             {
                 m_guid = System.Guid.NewGuid().ToString("N");
             }
-                
+
             string[] names = mat.GetTexturePropertyNames();
             for (int i = 0; i < names.Length; ++i)
             {
@@ -256,7 +262,12 @@ namespace Unity.HLODSystem.Utils
                     }
                 }
             }
+            else
+            {
+                shader = GraphicsUtils.GetDefaultShader();
+            }
 
+            m_shaderName = shader.name;
             m_enableAlphaClipping = shader.renderQueue >= (int)RenderQueue.AlphaTest;
         }
         public WorkingMaterialBuffer(Allocator allocator, int materialId, string name) : this(allocator)
@@ -354,7 +365,9 @@ namespace Unity.HLODSystem.Utils
             
             if (mat == null)
             {
-                return new Material(GraphicsUtils.GetDefaultShader());
+                var shaderPath = AssetDatabase.GUIDToAssetPath(m_shaderName);
+                var shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderPath);
+                return new Material(shader);
             }
 
             return mat;

@@ -61,12 +61,43 @@ namespace Unity.HLODSystem
 
             return propertyNames;
         }
+
+        void ShaderDropdown(GUIContent guiContent, ref Shader shader)
+        {
+            var shaders = ShaderUtil.GetAllShaderInfo();
+            var shaderNames = new string[shaders.Length + 1];
+            int shaderIdx = shaders.Length;
+            shaderNames[shaderIdx] = "None";
+            for (var s = 0; s < shaders.Length; ++s)
+            {
+                var shaderName = shaders[s].name;
+
+                if (shader != null && shaderName == shader.name)
+                    shaderIdx = s;
+
+                shaderNames[s] = shaderName;
+            }
+
+            var newShaderIdx = EditorGUILayout.Popup(guiContent, shaderIdx, shaderNames);
+
+            if (shaderIdx != newShaderIdx)
+            {
+                if (shaderIdx == shaders.Length)
+                {
+                    shader = null;
+                }
+                else
+                {
+                    shader = Shader.Find(shaderNames[newShaderIdx]);
+                }
+            }
+        }
         
         public void DrawGUI(HLOD hlod, ref bool textureSlotFoldout)
         {
             EditorGUI.BeginChangeCheck();
 
-            Shader = (Shader)EditorGUILayout.ObjectField(new GUIContent("Shader", "A value of null equals the value of Preferences/HLOD/Default Shader."), Shader, typeof(Shader), false);
+            ShaderDropdown(new GUIContent("Shader", "A value of null equals the value of Preferences/HLOD/Default Shader."), ref Shader);
                 
             var resolvedShader = Shader != null ? Shader : Utils.GraphicsUtils.GetDefaultShader();
 

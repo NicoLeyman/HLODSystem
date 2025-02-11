@@ -41,7 +41,7 @@ namespace Unity.HLODSystem
             return options[selected];
         }
 
-        public static string DynamicAssetPropertyGUI<T>(string label, string serializedAssetGUID, T defaultValue) where T : UnityEngine.Object
+        public static string DynamicAssetPropertyGUI<T>(string label, string serializedAssetGUID, T defaultValue, out T value) where T : UnityEngine.Object
         {
             string path = "";
             T asset = null;
@@ -54,6 +54,7 @@ namespace Unity.HLODSystem
             if (asset == null)
                 asset = defaultValue;
 
+            value = asset;
             path = AssetDatabase.GetAssetPath(asset);
             return AssetDatabase.AssetPathToGUID(path);
         }
