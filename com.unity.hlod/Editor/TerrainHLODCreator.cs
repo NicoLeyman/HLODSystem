@@ -1100,12 +1100,16 @@ namespace Unity.HLODSystem
 
                         QuadTreeSpaceSplitter splitter = new QuadTreeSpaceSplitter(null);
 
+                        List<GameObject> hlodTargets = ObjectUtils.HLODTargets(m_hlod.gameObject);
+
                         List<SpaceNode> rootNodeList = splitter.CreateSpaceTree(m_hlod.GetBounds(), m_hlod.ChunkSize * 2.0f,
-                        m_hlod.transform, null, progress => { });
+                        m_hlod.transform, hlodTargets, progress => { });
 
                         EditorUtility.DisplayProgressBar("Bake HLOD", "Create mesh", 0.0f);
-                        foreach (var rootNode in rootNodeList)
+                        for (var ri = 0; ri < rootNodeList.Count; ++ri)
                         {
+                            var rootNode = rootNodeList[ri];
+
                             using (DisposableList<HLODBuildInfo> buildInfos = CreateBuildInfo(data, rootNode))
                             {
                                 yield return m_queue.WaitFinish();
@@ -1229,7 +1233,7 @@ namespace Unity.HLODSystem
                                 //controller
                                 IStreamingBuilder builder =
                                     (IStreamingBuilder)Activator.CreateInstance(m_hlod.StreamingType,
-                                        new object[] { m_hlod, m_hlod.StreamingOptions });
+                                        new object[] { m_hlod, ri, m_hlod.StreamingOptions });
 
                                 builder.Build(rootNode, buildInfos, m_hlod.gameObject, m_hlod.CullDistance,
                                     m_hlod.LODDistance, true, false,
