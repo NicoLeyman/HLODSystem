@@ -222,6 +222,21 @@ namespace Unity.HLODSystem
                 texture.Apply();
                 return texture;
             }
+
+            public void SetupTextureImporter(TextureImporter importer)
+            {
+                if (importer)
+                {
+                    if (IsNormal)
+                    {
+                        importer.textureType = TextureImporterType.NormalMap;
+                    }
+
+                    importer.wrapMode = WrapMode;
+                    importer.sRGBTexture = GraphicsFormatUtility.IsSRGBFormat(GraphicsFormat);
+                    importer.SaveAndReimport();
+                }
+            }
         }
 
         [Serializable]
@@ -322,6 +337,7 @@ namespace Unity.HLODSystem
             [SerializeField] private List<string> m_materialIds = new List<string>();
             [SerializeField] private List<string> m_materialNames = new List<string>();
             [SerializeField] private LightProbeUsage m_lightProbeUsage;
+            [SerializeField] private ShadowCastingMode m_shadowCastingMode; 
 
             public string Name
             {
@@ -330,6 +346,8 @@ namespace Unity.HLODSystem
             }
 
             public LightProbeUsage LightProbeUsage => m_lightProbeUsage;
+
+            public ShadowCastingMode ShadowCastingMode => m_shadowCastingMode;
 
             public SerializableMesh GetMesh()
             {
@@ -353,6 +371,7 @@ namespace Unity.HLODSystem
                 m_materialIds = new List<string>();
                 m_materialNames = new List<string>();
                 m_lightProbeUsage = obj.LightProbeUsage;
+                m_shadowCastingMode = obj.ShadowCastingMode;
                 for (int i = 0; i < obj.Materials.Count; ++i)
                 {
                     m_materialIds.Add(obj.Materials[i].Guid);

@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Unity.HLODSystem.Serializer
 {
+    [DisallowMultipleComponent]
     public abstract class UserDataSerializerBase : MonoBehaviour , ISerializationCallbackReceiver
     {
         private Dictionary<int, int> m_idTable = new Dictionary<int, int>();

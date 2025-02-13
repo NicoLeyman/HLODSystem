@@ -125,6 +125,7 @@ namespace Unity.HLODSystem
                             mf.sharedMesh = mesh;
                             mr.sharedMaterials = materials.ToArray();
                             mr.lightProbeUsage = so.LightProbeUsage;
+                            mr.shadowCastingMode = so.ShadowCastingMode;
 
                             ctx.AddObjectToAsset(mesh.name, mesh);
 

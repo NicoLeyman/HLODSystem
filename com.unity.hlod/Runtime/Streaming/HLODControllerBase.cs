@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace Unity.HLODSystem.Streaming
 {
+    [DisallowMultipleComponent]
     public abstract class HLODControllerBase : MonoBehaviour, ISerializationCallbackReceiver
     {
         #region Interface

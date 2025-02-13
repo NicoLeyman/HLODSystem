@@ -1,6 +1,7 @@
 ﻿using System;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Unity.HLODSystem.Utils
 {
@@ -27,6 +28,7 @@ namespace Unity.HLODSystem.Utils
         private Allocator m_allocator;
 
         private UnityEngine.Rendering.LightProbeUsage m_lightProbeUsage;
+        private ShadowCastingMode m_ShadowCastingMode;
 
         public string Name { set; get; }
         public WorkingMesh Mesh
@@ -50,6 +52,12 @@ namespace Unity.HLODSystem.Utils
             set => m_lightProbeUsage = value;
         }
 
+        public ShadowCastingMode ShadowCastingMode
+        {
+            get => m_ShadowCastingMode;
+            set => m_ShadowCastingMode = value;
+        }
+
         public WorkingObject(Allocator allocator)
         {
             m_allocator = allocator;
@@ -57,6 +65,7 @@ namespace Unity.HLODSystem.Utils
             m_materials = new DisposableList<WorkingMaterial>();
             m_localToWorld = Matrix4x4.identity;
             m_lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.BlendProbes;
+            m_ShadowCastingMode = ShadowCastingMode.On;
         }
 
         public void FromRenderer(MeshRenderer renderer, MeshFilter filter)
@@ -81,6 +90,7 @@ namespace Unity.HLODSystem.Utils
             m_localToWorld = renderer.localToWorldMatrix;
 
             m_lightProbeUsage = renderer.lightProbeUsage;
+            m_ShadowCastingMode = renderer.shadowCastingMode;
         }
 
         public void SetMesh(WorkingMesh mesh)

@@ -140,9 +140,13 @@ namespace Unity.HLODSystem.Streaming
 
                     for (int oi = 0; oi < spaceNode.Objects.Count; ++oi)
                     {
-                        if (PrefabUtility.IsAnyPrefabInstanceRoot(spaceNode.Objects[oi]) == false)
+                        var obj = spaceNode.Objects[oi];
+                        // Prefabs instances with overrides are considered scene objects since otherwise we'd either have to serialize a new prefab variant (and make sure we don't create duplicates with the same overrides) or somehow serialize and apply the overrides ourselves.
+                        var nearestPrefabRoot = PrefabUtility.GetNearestPrefabInstanceRoot(obj);
+                        var hasPrefabOverrides = ObjectUtils.IsObjectPartOfOverriddenPotentiallyNestedPrefab(nearestPrefabRoot);
+                        if (nearestPrefabRoot == null || hasPrefabOverrides)
                         {
-                            prefabData.AddFromGameObject(spaceNode.Objects[oi]);
+                            prefabData.AddFromGameObject(obj);
                         }
                     }
                 }
@@ -177,9 +181,7 @@ namespace Unity.HLODSystem.Streaming
                 rootDatas.Add(item.Key, rootData);
             }
 
-            
-
-            var addressableController = root.AddComponent<AddressableHLODController>();
+            var addressableController = ObjectUtils.AddOrReplaceComponent<AddressableHLODController>(root);
             addressableController.ControllerID = m_controllerID;
             m_manager.AddGeneratedResource(addressableController);
 
@@ -193,10 +195,10 @@ namespace Unity.HLODSystem.Streaming
                     int highId = -1;
                     GameObject obj = spaceNode.Objects[oi];
 
-                    if (PrefabUtility.IsPartOfAnyPrefab(obj) == false)
+                    var nearestPrefabRoot = PrefabUtility.GetNearestPrefabInstanceRoot(obj);
+                    var referenceAsPrefab = nearestPrefabRoot != null && !ObjectUtils.IsObjectPartOfOverriddenPotentiallyNestedPrefab(nearestPrefabRoot);
+                    if (!referenceAsPrefab)
                     {
-
-
                         GameObject rootGameObject = null;
                         
                         if ( rootDatas.ContainsKey(i))
@@ -222,14 +224,14 @@ namespace Unity.HLODSystem.Streaming
                         }
                     }
 
-                    var address = GetAddress(spaceNode.Objects[oi]);
-                    if (string.IsNullOrEmpty(address) && PrefabUtility.IsAnyPrefabInstanceRoot(spaceNode.Objects[oi]))
+                    var address = GetAddress(obj);
+                    if (string.IsNullOrEmpty(address) && referenceAsPrefab)
                     {
                         AddAddress(settings, group, spaceNode.Objects[oi]);
                         address = GetAddress(spaceNode.Objects[oi]);
                     }
                     
-                    if (address != null)
+                    if (address != null && referenceAsPrefab)
                     {
                         highId = addressableController.AddHighObject(address, spaceNode.Objects[oi]);
                     }
@@ -306,12 +308,7 @@ namespace Unity.HLODSystem.Streaming
                     var assetImporter = AssetImporter.GetAtPath(textureFilename);
                     var textureImporter = assetImporter as TextureImporter;
 
-                    if (textureImporter)
-                    {
-                        textureImporter.wrapMode = serializeTexture.WrapMode;
-                        textureImporter.sRGBTexture = GraphicsFormatUtility.IsSRGBFormat(serializeTexture.GraphicsFormat);
-                        textureImporter.SaveAndReimport();
-                    }
+                    serializeTexture.SetupTextureImporter(textureImporter);
 
                     var storedTexture = AssetDatabase.LoadAssetAtPath<Texture>(textureFilename);
                     m_manager.AddGeneratedResource(storedTexture);

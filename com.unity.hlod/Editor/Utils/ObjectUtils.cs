@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
@@ -171,6 +170,87 @@ namespace Unity.HLODSystem.Utils
             }
         }
 
+        public static void Destroy(Object ob)
+        {
+#if UNITY_EDITOR
+            if(!Application.isPlaying)
+            {
+                GameObject.DestroyImmediate(ob);
+                return;
+            }
+#endif
+
+            GameObject.Destroy(ob);
+        }
+
+        public static T AddOrReplaceComponent<T>(GameObject gameOb) where T : Component
+        {
+            if(gameOb.TryGetComponent<T>(out var comp))
+            {
+                Destroy(comp);
+            }
+
+            return gameOb.AddComponent<T>();
+        }
+
+        public static Component AddOrReplaceComponent(GameObject gameOb, System.Type type)
+        {
+            if (gameOb.TryGetComponent(type, out var comp))
+            {
+                Destroy(comp);
+            }
+
+            return gameOb.AddComponent(type);
+        }
+
+        // Returns true if the object is either part of a prefab with overrides, or if it is part of a nested prefab where the nearest prefab has been overriden by any of the parent prefabs.
+        public static bool IsObjectPartOfOverriddenPotentiallyNestedPrefab(GameObject gameOb)
+        {
+            var instanceRoot = PrefabUtility.GetNearestPrefabInstanceRoot(gameOb);
+
+            // Not part of any prefab.
+            if (instanceRoot == null)
+                return false;
+
+            // Direct overrides on the instance
+            if (PrefabUtility.HasPrefabInstanceAnyOverrides(instanceRoot, false))
+                return true;
+
+            var prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(instanceRoot);
+
+            // Get parent prefab
+            var parentRoot = PrefabUtility.GetNearestPrefabInstanceRoot(instanceRoot);
+           
+            while (parentRoot != null)
+            {
+                // Load parent prefab
+                var parentPrefabPath = AssetDatabase.GetAssetPath(parentRoot);
+                var parentPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(parentPrefabPath);
+
+                foreach (Transform child in parentPrefab.transform)
+                {
+                    if (PrefabUtility.IsAnyPrefabInstanceRoot(child.gameObject))
+                    {
+                        var childPrefabPath = AssetDatabase.GetAssetPath(instanceRoot);
+                        // Is this child an instance of the original prefab of interest?
+                        if (childPrefabPath == prefabPath)
+                        {
+                            // Does this instance (inside the parent prefab) have any overrides?
+                            if (PrefabUtility.HasPrefabInstanceAnyOverrides(child.gameObject, false))
+                                return true;
+
+                            // Continue walking children as there may be multiple instances of the same prefab.
+                            continue;
+                        }
+                    }
+                }
+
+                // Get next parent prefab
+                parentRoot = PrefabUtility.GetNearestPrefabInstanceRoot(parentRoot);
+            }
+
+            return false;
+        }
 
     }
 

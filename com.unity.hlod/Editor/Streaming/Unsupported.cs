@@ -135,7 +135,7 @@ namespace Unity.HLODSystem.Streaming
             RootData rootData = AssetDatabase.LoadAssetAtPath<RootData>(filename);
             m_manager.AddGeneratedResource(rootData);
        
-            var defaultController = root.AddComponent<DefaultHLODController>();
+            var defaultController = ObjectUtils.AddOrReplaceComponent<DefaultHLODController>(root);
             defaultController.ControllerID = m_controllerID;
             m_manager.AddGeneratedResource(defaultController);
             
@@ -230,17 +230,7 @@ namespace Unity.HLODSystem.Streaming
                     var assetImporter = AssetImporter.GetAtPath(textureFilename);
                     var textureImporter = assetImporter as TextureImporter;
 
-                    if (textureImporter)
-                    {
-                        if(serializeTexture.IsNormal)
-                        {
-                            textureImporter.textureType = TextureImporterType.NormalMap;
-                        }
-
-                        textureImporter.wrapMode = serializeTexture.WrapMode;
-                        textureImporter.sRGBTexture = GraphicsFormatUtility.IsSRGBFormat(serializeTexture.GraphicsFormat);
-                        textureImporter.SaveAndReimport();
-                    }
+                    serializeTexture.SetupTextureImporter(textureImporter);
 
                     var storedTexture = AssetDatabase.LoadAssetAtPath<Texture>(textureFilename);
                     m_manager.AddGeneratedResource(storedTexture);

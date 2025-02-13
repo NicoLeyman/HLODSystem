@@ -85,7 +85,7 @@ namespace Unity.HLODSystem.Streaming
             {
                 if (string.IsNullOrEmpty(m_highObjects[i].Address) == false)
                 {
-                    DestoryObject(m_highObjects[i].GameObject);
+                    DestroyObject(m_highObjects[i].GameObject);
                 }
                 else if (m_highObjects[i].GameObject != null)
                 {
@@ -186,7 +186,7 @@ namespace Unity.HLODSystem.Streaming
             {
                 if (m_highObjectLoadInfos.TryGetValue(id, out var loadInfo))
                 {
-                    DestoryObject(loadInfo.Instance);
+                    DestroyObject(loadInfo.Instance);
                     Unload(loadInfo);
 
                     m_highObjectLoadInfos.Remove(id);
@@ -205,7 +205,7 @@ namespace Unity.HLODSystem.Streaming
         {
             if (m_lowObjectLoadInfos.TryGetValue(id, out var loadInfo))
             {
-                DestoryObject(loadInfo.Instance);
+                DestroyObject(loadInfo.Instance);
                 Unload(loadInfo);
                 
                 m_lowObjectLoadInfos.Remove(id);
@@ -217,7 +217,7 @@ namespace Unity.HLODSystem.Streaming
             }
         }
 
-        private void DestoryObject(Object obj)
+        private new void DestroyObject(Object obj)
         {
 #if UNITY_EDITOR
             DestroyImmediate(obj);

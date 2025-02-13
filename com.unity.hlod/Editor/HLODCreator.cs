@@ -370,7 +370,7 @@ namespace Unity.HLODSystem
 
         private static void UserDataSerialization(HLOD hlod)
         {
-            var serializer = hlod.gameObject.AddComponent(hlod.UserDataSerializerType) as UserDataSerializerBase;
+            var serializer = ObjectUtils.AddOrReplaceComponent(hlod.gameObject, hlod.UserDataSerializerType) as UserDataSerializerBase;
 
             if (serializer == null)
                 return;
