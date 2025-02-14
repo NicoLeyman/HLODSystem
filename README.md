@@ -84,6 +84,6 @@ Licensed under the Unity Companion License for Unity-dependent projects see [Uni
 Unless expressly provided otherwise, the Software under this license is made available strictly on an **“AS IS”** BASIS WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. Please review the license for details on these and other terms and conditions.
 
 [license]: <https://unity3d.com/legal/licenses/Unity_Companion_License>
-[demoProject]: <https://github.com/Unity-Technologies/HLODSystemDemo>
+[demoProject]: <https://github.com/NicoLeyman/FantasyKingdom_HLOD>
 [specDoc]: <https://docs.google.com/document/d/1RzIvdiISPzoW_Tp6_Qia4Zt7fcl6ehoXTpVGLIFZ49A>
 [userGuide]: <https://docs.google.com/document/d/1jZ9dforSSUTokTmprunayq7d3LUTv2aQK63IbtS-QzU>
