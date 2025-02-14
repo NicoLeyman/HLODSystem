@@ -1063,6 +1063,12 @@ namespace Unity.HLODSystem
 
                     TerrainData data = m_hlod.TerrainData;
 
+                    if(data == null)
+                    {
+                        var terrain = m_hlod.GetComponent<Terrain>();
+                        data = terrain?.terrainData;
+                    }
+
                     m_size = data.size;
 
                     m_heightmap = new Heightmap(data.heightmapResolution, data.heightmapResolution, data.size,
@@ -1071,7 +1077,7 @@ namespace Unity.HLODSystem
                     string materialPath = AssetDatabase.GUIDToAssetPath(m_hlod.MaterialGUID);
                     m_terrainMaterial = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
                     if (m_terrainMaterial == null)
-                        m_terrainMaterial = new Material(Shader.Find("Lightweight Render Pipeline/Lit-Terrain-HLOD-High"));
+                        m_terrainMaterial = new Material(GraphicsUtils.GetDefaultTerrainShader());
 
                     m_terrainMaterialInstanceId = m_terrainMaterial.GetInstanceID();
                     m_terrainMaterialName = m_terrainMaterial.name;
@@ -1079,7 +1085,7 @@ namespace Unity.HLODSystem
                     materialPath = AssetDatabase.GUIDToAssetPath(m_hlod.MaterialLowGUID);
                     m_terrainMaterialLow = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
                     if (m_terrainMaterialLow == null)
-                        m_terrainMaterialLow = new Material(Shader.Find("Lightweight Render Pipeline/Lit-Terrain-HLOD-Low"));
+                        m_terrainMaterialLow = new Material(GraphicsUtils.GetDefaultTerrainShader());
 
                     m_terrainMaterialLowInstanceId = m_terrainMaterialLow.GetInstanceID();
                     m_terrainMaterialLowName = m_terrainMaterialLow.name;

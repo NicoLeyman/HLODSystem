@@ -28,11 +28,17 @@ namespace Unity.HLODSystem
             }
         }
 
+        // Common
         public bool OverrideDefaultShader;
         public Shader DefaultShader;
 
+        // Simple Batcher
         public bool OverrideDefaultMaterialMapping;
         public MaterialMapping DefaultMaterialMapping;
+
+        // Terrain
+        public bool OverrideDefaultTerrainShader;
+        public Shader DefaultTerrainShader;
 
         internal static HLODEditorSettings GetOrCreateSettings()
         {
@@ -89,11 +95,18 @@ namespace Unity.HLODSystem
                         properties.AddToClassList("property-list");
                         rootElement.Add(properties);
 
+                        var commonFoldout = new Foldout() { text = "Common", value = true };
+                        properties.Add(commonFoldout);
+
+                        commonFoldout.Add(new OverridablePropertyElement(settings, nameof(DefaultShader), (bool o) => { return GraphicsUtils.GetDefaultShader().name; }, "Default Shader", "A value of null falls back to the current render pipeline's default shader."));
+                        
                         var simpleBatcherFoldout = new Foldout() { text = "Simple Batcher", value = true };
                         properties.Add(simpleBatcherFoldout);
-
-                        simpleBatcherFoldout.Add(new OverridablePropertyElement(settings, nameof(DefaultShader), (bool o) => { return GraphicsUtils.GetDefaultShader().name; }, "Default Shader", "A value of null falls back to the current render pipeline's default shader."));
                         simpleBatcherFoldout.Add(new PropertyField(settings.FindProperty(nameof(DefaultMaterialMapping)), "Default Material Mapping") { tooltip = "Default Material Mapping referenced by HLOD Components using the Simple Batcher" });
+
+                        var terrainFoldout = new Foldout() { text = "Terrain", value = true };
+                        properties.Add(terrainFoldout);
+                        terrainFoldout.Add(new OverridablePropertyElement(settings, nameof(DefaultTerrainShader), (bool o) => { return GraphicsUtils.GetDefaultTerrainShader().name; }, "Default Terrain Shader", "A value of null falls back to the common default shader."));
 
                         rootElement.Bind(settings);
                     },

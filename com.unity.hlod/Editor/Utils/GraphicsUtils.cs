@@ -75,6 +75,16 @@ namespace Unity.HLODSystem.Utils
             return shaderName == null ? null : Shader.Find(shaderName);
         }
 
+        public static Shader GetDefaultTerrainShader()
+        {
+            var defaultTerrainShader = HLODEditorSettings.Instance.DefaultTerrainShader;
+
+            if (defaultTerrainShader != null)
+                return defaultTerrainShader;
+
+            return GetDefaultShader();
+        }
+
         public static void EnableAlphaClipping(Material mat, bool enable)
         {
             const string alphaTestKeyword = "_ALPHATEST_ON";
