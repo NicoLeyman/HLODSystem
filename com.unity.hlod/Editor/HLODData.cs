@@ -303,7 +303,8 @@ namespace Unity.HLODSystem
             {
                 if (string.IsNullOrEmpty(m_assetGuid))
                 {
-                    Material mat = new Material(Shader.Find(m_shaderName));
+                    var shader = Shader.Find(m_shaderName);
+                    Material mat = new Material(shader);
                     EditorJsonUtility.FromJsonOverwrite(m_jsonData, mat);
                     mat.name = m_name;
                     GraphicsUtils.EnableAlphaClipping(mat, m_alphaClipping);

@@ -206,6 +206,9 @@ namespace Unity.HLODSystem.Utils
         // Returns true if the object is either part of a prefab with overrides, or if it is part of a nested prefab where the nearest prefab has been overriden by any of the parent prefabs.
         public static bool IsObjectPartOfOverriddenPotentiallyNestedPrefab(GameObject gameOb)
         {
+            if (gameOb == null)
+                return false;
+
             var instanceRoot = PrefabUtility.GetNearestPrefabInstanceRoot(gameOb);
 
             // Not part of any prefab.
@@ -224,14 +227,18 @@ namespace Unity.HLODSystem.Utils
             while (parentRoot != null)
             {
                 // Load parent prefab
-                var parentPrefabPath = AssetDatabase.GetAssetPath(parentRoot);
+                //var parentPrefabPath = AssetDatabase.GetAssetPath(parentRoot);
+                var parentPrefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(parentRoot);
+                if (string.IsNullOrEmpty(parentPrefabPath))
+                    break;
+
                 var parentPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(parentPrefabPath);
 
                 foreach (Transform child in parentPrefab.transform)
                 {
                     if (PrefabUtility.IsAnyPrefabInstanceRoot(child.gameObject))
                     {
-                        var childPrefabPath = AssetDatabase.GetAssetPath(instanceRoot);
+                        var childPrefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(parentRoot);
                         // Is this child an instance of the original prefab of interest?
                         if (childPrefabPath == prefabPath)
                         {
@@ -246,7 +253,11 @@ namespace Unity.HLODSystem.Utils
                 }
 
                 // Get next parent prefab
-                parentRoot = PrefabUtility.GetNearestPrefabInstanceRoot(parentRoot);
+                var parent = parentRoot.transform.parent;
+                if (parent == null)
+                    break;
+
+                parentRoot = PrefabUtility.GetNearestPrefabInstanceRoot(parent);
             }
 
             return false;

@@ -224,6 +224,11 @@ namespace Unity.HLODSystem
 
             public void SetSelectedObject(Mesh mesh, Material mat)
             {
+                // TODO: investigate performance (and deadlocks/out-of-memory with large meshes) issues.
+                if(mesh.triangles.Length > 64000)
+                {
+                    mesh = null;
+                }
                 UVGrid.Mesh = mesh;
                 Material = mat;
 

@@ -36,8 +36,12 @@ namespace Unity.HLODSystem
                 var convertedPrefabObjects = hlod.ConvertedPrefabObjects;
                 for (int i = 0; i < convertedPrefabObjects.Count; ++i)
                 {
-                    PrefabUtility.UnpackPrefabInstance(convertedPrefabObjects[i], PrefabUnpackMode.OutermostRoot,
-                        InteractionMode.AutomatedAction);
+                    var ob = convertedPrefabObjects[i];
+                    if (PrefabUtility.IsAnyPrefabInstanceRoot(ob))
+                    {
+                        PrefabUtility.UnpackPrefabInstance(convertedPrefabObjects[i], PrefabUnpackMode.OutermostRoot,
+                            InteractionMode.AutomatedAction);
+                    }
                 }
 
                 
@@ -303,10 +307,12 @@ namespace Unity.HLODSystem
         private Material m_terrainMaterial;
         private int m_terrainMaterialInstanceId;
         private string m_terrainMaterialName;
+        private string m_terrainShaderName;
 
         private Material m_terrainMaterialLow;
         private int m_terrainMaterialLowInstanceId;
         private string m_terrainMaterialLowName;
+        private string m_terrainShaderLowName;
 
         private TerrainHLODCreator(TerrainHLOD hlod)
         {
@@ -421,6 +427,7 @@ namespace Unity.HLODSystem
 
             WorkingMaterial material = new WorkingMaterial(Allocator.Persistent, matInstanceID, matName);
             material.Name = name + "_Material";
+            material.ShaderName = useHighMaterial ? m_terrainShaderName : m_terrainShaderLowName;
 
             m_queue.EnqueueJob(() =>
             {
@@ -1081,6 +1088,7 @@ namespace Unity.HLODSystem
 
                     m_terrainMaterialInstanceId = m_terrainMaterial.GetInstanceID();
                     m_terrainMaterialName = m_terrainMaterial.name;
+                    m_terrainShaderName = m_terrainMaterial.shader.name;
 
                     materialPath = AssetDatabase.GUIDToAssetPath(m_hlod.MaterialLowGUID);
                     m_terrainMaterialLow = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
@@ -1089,6 +1097,7 @@ namespace Unity.HLODSystem
 
                     m_terrainMaterialLowInstanceId = m_terrainMaterialLow.GetInstanceID();
                     m_terrainMaterialLowName = m_terrainMaterialLow.name;
+                    m_terrainShaderLowName = m_terrainMaterialLow.shader.name;
 
                     using (m_alphamaps = new DisposableList<WorkingTexture>())
                     using (m_layers = new DisposableList<Layer>())
@@ -1230,7 +1239,8 @@ namespace Unity.HLODSystem
                                         go.transform.SetParent(m_hlod.transform, false);
                                         m_hlod.AddGeneratedResource(go);
 
-                                        parent.Objects.Add(go);
+                                        if(parent != null)
+                                            parent.Objects.Add(go);
                                         buildInfos.RemoveAt(i);
                                         i -= 1;
                                     }

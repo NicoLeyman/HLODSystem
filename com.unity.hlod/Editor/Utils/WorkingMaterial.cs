@@ -36,6 +36,7 @@ namespace Unity.HLODSystem.Utils
         public string ShaderName
         {
             get { return m_buffer.ShaderName; }
+            set { m_buffer.ShaderName =  value; }
         }
         public int InstanceID
         {
@@ -200,7 +201,11 @@ namespace Unity.HLODSystem.Utils
             set => m_name = value;
         }
         public string Guid => m_guid;
-        public string ShaderName => m_shaderName;
+        public string ShaderName
+        {
+            get => m_shaderName;
+            set => m_shaderName = value;
+        }
         public int InstanceID => m_instanceID;
 
         public string Identifier
