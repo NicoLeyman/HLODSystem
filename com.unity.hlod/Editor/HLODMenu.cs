@@ -8,22 +8,44 @@ public class HLODMenu
     [MenuItem("HLOD/Regenerate Scene HLODs")]
     public static void RegenerateSceneHLODs()
     {
+        {
             var hlods = GameObject.FindObjectsByType<HLOD>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
 
             foreach(var hlod in hlods)
             {
                 CoroutineRunner.RunCoroutine(HLODCreator.Create(hlod));
             }
+        }
+
+        {
+            var hlods = GameObject.FindObjectsByType<TerrainHLOD>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
+
+            foreach(var hlod in hlods)
+            {
+                CoroutineRunner.RunCoroutine(TerrainHLODCreator.Create(hlod));
+            }
+        }
     }
 
     [MenuItem("HLOD/Destroy Scene HLODs")]
     public static void DestroySceneHLODs()
     {
-        var hlods = GameObject.FindObjectsByType<HLOD>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
-
-        foreach (var hlod in hlods)
         {
-            CoroutineRunner.RunCoroutine(HLODCreator.Destroy(hlod));
+            var hlods = GameObject.FindObjectsByType<HLOD>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
+
+            foreach (var hlod in hlods)
+            {
+                CoroutineRunner.RunCoroutine(HLODCreator.Destroy(hlod));
+            }
+        }
+
+        {
+            var hlods = GameObject.FindObjectsByType<TerrainHLOD>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
+
+            foreach (var hlod in hlods)
+            {
+                CoroutineRunner.RunCoroutine(TerrainHLODCreator.Destroy(hlod));
+            }
         }
     }
 }
