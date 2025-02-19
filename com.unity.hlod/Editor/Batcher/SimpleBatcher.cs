@@ -30,8 +30,25 @@ namespace Unity.HLODSystem
             m_createdMaterials.Dispose();
         }
 
+        public static void InitializeOptions(dynamic options)
+        {
+            if (options.textureSlotFoldout == null)
+                options.textureSlotFoldout = false;
+
+            if (options.PackTextureSize == null)
+                options.PackTextureSize = 1024;
+            if (options.LimitTextureSize == null)
+                options.LimitTextureSize = 128;
+            if (options.MaterialGUID == null)
+                options.MaterialGUID = "";
+            if (options.AllowAlphaClipping == null)
+                options.AllowAlphaClipping = true;
+        }
+
         public void Batch(Transform rootTransform, DisposableList<HLODBuildInfo> targets, Action<float> onProgress)
         {
+            InitializeOptions(m_batcherOptions);
+
             dynamic options = m_batcherOptions;
             if (onProgress != null)
                 onProgress(0.0f);
@@ -509,40 +526,7 @@ namespace Unity.HLODSystem
             EditorGUI.indentLevel += 1;
             dynamic batcherOptions = hlod.BatcherOptions;
 
-            // UI only
-            if (batcherOptions.textureSlotFoldout == null)
-                batcherOptions.textureSlotFoldout = false;
-
-            if (batcherOptions.PackTextureSize == null)
-                batcherOptions.PackTextureSize = 1024;
-            if (batcherOptions.LimitTextureSize == null)
-                batcherOptions.LimitTextureSize = 128;
-            if (batcherOptions.MaterialGUID == null)
-                batcherOptions.MaterialGUID = "";
-            if (batcherOptions.AllowAlphaClipping == null)
-                batcherOptions.AllowAlphaClipping = true;
-            //if (batcherOptions.TextureInfoList == null)
-            //{
-            //    batcherOptions.TextureInfoList = new List<TextureInfo>(){
-            //        new TextureInfo()
-            //    {
-            //        InputNames = { "_MainTex" },
-            //        OutputName = "_MainTex",
-            //        Type = PackingType.White
-            //    },
-            //    new TextureInfo()
-            //    {
-            //        InputNames = { "_BumpMap", "_NormalMap" },
-            //        OutputName = "_NormalMap",
-            //        Type = PackingType.Normal
-            //    },
-            //    new TextureInfo()
-            //    {
-            //        InputNames = { "_MaskMap"},
-            //        OutputName = "_MaskMap",
-            //        Type = PackingType.Black
-            //    } };
-            //}
+            SimpleBatcher.InitializeOptions(batcherOptions);
 
             batcherOptions.PackTextureSize = EditorGUILayout.IntPopup("Pack texture size", batcherOptions.PackTextureSize, Styles.PackTextureSizeNames, Styles.PackTextureSizes);
             batcherOptions.LimitTextureSize = EditorGUILayout.IntPopup("Limit texture size", batcherOptions.LimitTextureSize, Styles.LimitTextureSizeNames, Styles.LimitTextureSizes);
