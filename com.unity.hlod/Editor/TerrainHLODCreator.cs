@@ -1067,14 +1067,13 @@ namespace Unity.HLODSystem
 
                     EditorUtility.DisplayProgressBar("Bake HLOD", "Initialize Bake", 0.0f);
 
+                    var terrain = m_hlod.GetComponent<Terrain>();
+                    if(terrain != null)
+                    {     
+                        m_hlod.TerrainData = terrain.terrainData;
+                    }
 
                     TerrainData data = m_hlod.TerrainData;
-
-                    if(data == null)
-                    {
-                        var terrain = m_hlod.GetComponent<Terrain>();
-                        data = terrain?.terrainData;
-                    }
 
                     m_size = data.size;
 
@@ -1177,7 +1176,8 @@ namespace Unity.HLODSystem
                                 sw.Reset();
                                 sw.Start();
 
-
+                                // The leaf HLOD nodes are handled separately (not placed under the HLODRoot among other things)
+                                // since they represent the "real" individual objects in the case of a terrain HLOD.
                                 for (int i = 0; i < buildInfos.Count; ++i)
                                 {
                                     SpaceNode node = buildInfos[i].Target;
