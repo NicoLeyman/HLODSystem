@@ -18,8 +18,9 @@ namespace Unity.HLODSystem
         {
             public static GUIContent SourceText = new GUIContent("Source");
             public static GUIContent DestoryTerrainText = new GUIContent("Destroy terrain", "Destory original terrain when build time.");
-            public static GUIContent GenerateButtonEnable = new GUIContent("Generate", "Generate a HLOD mesh.");
-            public static GUIContent GenerateButtonExists = new GUIContent("Generate", "HLOD already generated.");
+            public static GUIContent GenerateButtonEnable = new GUIContent("Generate", "Generate terrain HLOD mesh.");
+            public static GUIContent RegenerateButtonEnable = new GUIContent("Regenerate", "Regenerate terrain HLOD mesh.");
+            public static GUIContent RegenerateButtonExists = new GUIContent("Generate", "HLOD already generated.");
             public static GUIContent DestroyButtonEnable = new GUIContent("Destroy", "Destroy a HLOD mesh.");
             public static GUIContent DestroyButtonNotExists = new GUIContent("Destroy", "You need to generate HLOD before the destroy.");
             
@@ -252,26 +253,42 @@ namespace Unity.HLODSystem
             GUIContent generateButton = Styles.GenerateButtonEnable;
             GUIContent destroyButton = Styles.DestroyButtonNotExists;
 
-            if (hlod.GetComponent<HLODControllerBase>() != null)
+            if (hlod.GeneratedObjects.Count > 0 )
             {
-                generateButton = Styles.GenerateButtonExists;
+                generateButton = Styles.RegenerateButtonEnable;
                 destroyButton = Styles.DestroyButtonEnable;
             }
 
-
-
             EditorGUILayout.Space();
 
-            GUI.enabled = generateButton == Styles.GenerateButtonEnable;
-            if (GUILayout.Button(generateButton))
+            if (generateButton == Styles.GenerateButtonEnable)
             {
-                CoroutineRunner.RunCoroutine(TerrainHLODCreator.Create(hlod));
+                if (GUILayout.Button(generateButton))
+                {
+                    CoroutineRunner.RunCoroutine(TerrainHLODCreator.Create(hlod));
+                }
+            }
+            else
+            {
+                if (generateButton == Styles.RegenerateButtonEnable)
+                {
+                    if (GUILayout.Button(generateButton))
+                    {
+                        CoroutineRunner.RunCoroutine(TerrainHLODCreator.Destroy(hlod));
+                        CoroutineRunner.RunCoroutine(TerrainHLODCreator.Create(hlod));
+                    }
+                }
             }
 
             GUI.enabled = destroyButton == Styles.DestroyButtonEnable;
             if (GUILayout.Button(destroyButton))
             {
                 CoroutineRunner.RunCoroutine(TerrainHLODCreator.Destroy(hlod));
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.SetDirty(hlod);
             }
 
             GUI.enabled = true;
