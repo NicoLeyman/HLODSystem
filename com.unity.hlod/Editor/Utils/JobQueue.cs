@@ -8,7 +8,9 @@ using UnityEngine;
 namespace Unity.HLODSystem.Utils
 {
     public class JobQueue : IDisposable
-    {        
+    {
+        public const int ThreadCount = 8;
+
         public JobQueue(int threadCount)
         {
             m_workers = new Worker[threadCount];

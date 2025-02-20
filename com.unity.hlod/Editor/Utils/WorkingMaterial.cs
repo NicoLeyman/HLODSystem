@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
@@ -136,7 +137,7 @@ namespace Unity.HLODSystem.Utils
         }
 
 
-        private Dictionary<string, WorkingMaterialBuffer> m_cache = new Dictionary<string, WorkingMaterialBuffer>();
+        private ConcurrentDictionary<string, WorkingMaterialBuffer> m_cache = new ConcurrentDictionary<string, WorkingMaterialBuffer>(JobQueue.ThreadCount, 8);
         public WorkingMaterialBuffer Get(Allocator allocator, Material material)
         {
             WorkingMaterialBuffer buffer = null;
@@ -175,7 +176,7 @@ namespace Unity.HLODSystem.Utils
 
         public void Destroy(WorkingMaterialBuffer buffer)
         {
-            m_cache.Remove(buffer.Identifier);
+            m_cache.Remove(buffer.Identifier, out var removedValue);
         }
     }
 
