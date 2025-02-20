@@ -8,7 +8,6 @@ using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using Object = UnityEngine.Object;
 
 namespace Unity.HLODSystem.Streaming
@@ -159,8 +158,7 @@ namespace Unity.HLODSystem.Streaming
 
             if (extractMaterial)
             {
-                ExtractMaterial(hlodDatas, filenamePrefix);
-                
+                ExtractMaterial(hlodDatas, filenamePrefix, settings, group);              
             }
 
             Dictionary<int, RootData> rootDatas = new Dictionary<int, RootData>();
@@ -271,7 +269,16 @@ namespace Unity.HLODSystem.Streaming
             addressableController.UpdateMaxManualLevel();
         }
 
-        private void ExtractMaterial(Dictionary<int, HLODData> hlodDatas, string filenamePrefix)
+        private void MarkAsAddressable(Object obj, AddressableAssetSettings settings, AddressableAssetGroup group)
+        {
+            var address = GetAddress(obj);
+            if (string.IsNullOrEmpty(address))
+            {
+                AddAddress(settings, group, obj);
+            }
+        }
+
+        private void ExtractMaterial(Dictionary<int, HLODData> hlodDatas, string filenamePrefix, AddressableAssetSettings settings, AddressableAssetGroup group)
         {
             Dictionary<string, HLODData.SerializableMaterial> hlodAllMaterials = new Dictionary<string, HLODData.SerializableMaterial>();
             //collect all materials
@@ -313,6 +320,8 @@ namespace Unity.HLODSystem.Streaming
                     var storedTexture = AssetDatabase.LoadAssetAtPath<Texture>(textureFilename);
                     m_manager.AddGeneratedResource(storedTexture);
                     mat.SetTexture(serializeTexture.Name, storedTexture);
+
+                    MarkAsAddressable(storedTexture, settings, group);
                 }
 
                 string matFilename = $"{filenamePrefix}_{mat.name}.mat";
@@ -321,7 +330,7 @@ namespace Unity.HLODSystem.Streaming
 
                 var storedMaterial = AssetDatabase.LoadAssetAtPath<Material>(matFilename);
                 m_manager.AddGeneratedResource(storedMaterial);
-
+                MarkAsAddressable(storedMaterial, settings, group);
 
                 using (WorkingMaterial newWM = new WorkingMaterial(Collections.Allocator.Temp, storedMaterial))
                 {
