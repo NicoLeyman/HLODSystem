@@ -331,8 +331,8 @@ namespace Unity.HLODSystem.Streaming
         {
             string path = Application.dataPath;
             path = "Assets" + path.Substring(Application.dataPath.Length);
-            path = path.Replace('\\', '/');
             path = Path.Combine(path, "HLOD", "HLOD_GeneratedData");
+            path = path.Replace('\\', '/');
             if (path.EndsWith("/") == false)
                 path += "/";
 
