@@ -37,7 +37,7 @@ namespace Unity.HLODSystem
                 for (int i = 0; i < convertedPrefabObjects.Count; ++i)
                 {
                     var ob = convertedPrefabObjects[i];
-                    if (PrefabUtility.IsAnyPrefabInstanceRoot(ob))
+                    if (ob != null && PrefabUtility.IsAnyPrefabInstanceRoot(ob))
                     {
                         PrefabUtility.UnpackPrefabInstance(convertedPrefabObjects[i], PrefabUnpackMode.OutermostRoot,
                             InteractionMode.AutomatedAction);
@@ -72,6 +72,10 @@ namespace Unity.HLODSystem
                 EditorUtility.ClearProgressBar();
             }
             
+            var terrain = hlod.GetComponent<Terrain>();
+            if (terrain != null)
+                terrain.enabled = true;
+
             EditorUtility.SetDirty(hlod.gameObject);
             EditorUtility.SetDirty(hlod);
         }
@@ -208,7 +212,7 @@ namespace Unity.HLODSystem
                 u = u - Mathf.Floor(u);
                 v = v - Mathf.Floor(v);
 
-                mipLevel = Mathf.Min(mipLevel, m_diffuseTextures.Count - 1);
+                mipLevel = Mathf.Min(mipLevel, m_maskTextures.Count - 1);
 
                 return m_maskTextures[mipLevel].GetPixel(u, v);
             }
@@ -1055,7 +1059,7 @@ namespace Unity.HLODSystem
         {
             try
             {
-                using (m_queue = new JobQueue(8))
+                using (m_queue = new JobQueue(JobQueue.ThreadCount))
                 {
                     Stopwatch sw = new Stopwatch();
 
@@ -1264,6 +1268,9 @@ namespace Unity.HLODSystem
                             }
                         }
                     }
+
+                    if(terrain != null)
+                        terrain.enabled = false;
 
                     EditorUtility.SetDirty(m_hlod.gameObject);
                 }
