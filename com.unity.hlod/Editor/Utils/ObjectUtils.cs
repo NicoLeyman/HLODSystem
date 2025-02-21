@@ -34,6 +34,11 @@ namespace Unity.HLODSystem.Utils
 
         public static List<GameObject> HLODTargets(GameObject root)
         {
+            if(root == null)
+            {
+                return new List<GameObject>();
+            }
+
             List<GameObject> targets = new List<GameObject>();
 
             List<HLODMeshSetter> meshSetters = GetComponentsInChildren<HLODMeshSetter>(root);

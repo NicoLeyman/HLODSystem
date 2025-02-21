@@ -16,13 +16,13 @@ namespace Unity.HLODSystem
     {
         public static class Styles
         {
-            public static GUIContent SourceText = new GUIContent("Source");
-            public static GUIContent DestoryTerrainText = new GUIContent("Destroy terrain", "Destory original terrain when build time.");
+            public static GUIContent SourceText = new GUIContent("Source", "The HLOD uses the data from the Terrain component if one is present on the same GameObject ");
+            public static GUIContent DestroyTerrainText = new GUIContent("Destroy terrain", "Destroy original terrain at player build time.");
             public static GUIContent GenerateButtonEnable = new GUIContent("Generate", "Generate terrain HLOD mesh.");
             public static GUIContent RegenerateButtonEnable = new GUIContent("Regenerate", "Regenerate terrain HLOD mesh.");
             public static GUIContent RegenerateButtonExists = new GUIContent("Generate", "HLOD already generated.");
             public static GUIContent DestroyButtonEnable = new GUIContent("Destroy", "Destroy a HLOD mesh.");
-            public static GUIContent DestroyButtonNotExists = new GUIContent("Destroy", "You need to generate HLOD before the destroy.");
+            public static GUIContent DestroyButtonNotExists = new GUIContent("Destroy", "HLOD needs to be generated before it can be destroyed.");
             
             public static int[] TextureSizes = new int[]
             {
@@ -45,7 +45,7 @@ namespace Unity.HLODSystem
         }        
         
         private SerializedProperty m_TerrainDataProperty;
-        private SerializedProperty m_DestoryTerrainProperty;
+        private SerializedProperty m_DestroyTerrainProperty;
         private SerializedProperty m_ChunkSizeProperty;
         private SerializedProperty m_BorderVertexCountProperty;
         private SerializedProperty m_LODDistanceProperty;
@@ -71,7 +71,7 @@ namespace Unity.HLODSystem
         void OnEnable()
         {
             m_TerrainDataProperty = serializedObject.FindProperty("m_TerrainData");
-            m_DestoryTerrainProperty = serializedObject.FindProperty("m_DestroyTerrain");
+            m_DestroyTerrainProperty = serializedObject.FindProperty("m_DestroyTerrain");
             m_ChunkSizeProperty = serializedObject.FindProperty("m_ChunkSize");
             m_BorderVertexCountProperty = serializedObject.FindProperty("m_BorderVertexCount");
             
@@ -103,8 +103,11 @@ namespace Unity.HLODSystem
             isShowCommon = EditorGUILayout.BeginFoldoutHeaderGroup(isShowCommon, "Common");
             if (isShowCommon == true)
             {
+                GUI.enabled = hlod.gameObject.GetComponent<Terrain>() == null;
                 EditorGUILayout.PropertyField(m_TerrainDataProperty, Styles.SourceText);
-                EditorGUILayout.PropertyField(m_DestoryTerrainProperty, Styles.DestoryTerrainText);
+                GUI.enabled = true;
+
+                EditorGUILayout.PropertyField(m_DestroyTerrainProperty, Styles.DestroyTerrainText);
                 EditorGUILayout.PropertyField(m_ChunkSizeProperty);
                 
                 m_ChunkSizeProperty.floatValue = HLODUtils.GetChunkSizePropertyValue(m_ChunkSizeProperty.floatValue);
