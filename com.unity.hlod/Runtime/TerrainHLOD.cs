@@ -23,8 +23,9 @@ namespace Unity.HLODSystem
         [SerializeField] private SerializableDynamicObject m_SimplifierOptions = new SerializableDynamicObject();
         [SerializeField] private SerializableDynamicObject m_StreamingOptions = new SerializableDynamicObject();
 
-        [SerializeField] private string m_materialGUID = "";
-        [SerializeField] private string m_materialLowGUID = "";
+        [SerializeField] private bool m_HighQualityTerrainUsesSplatmap = true;
+        [SerializeField] private string m_highQualityMaterialGUID = "";
+        [SerializeField] private string m_lowQualityMaterialGUID = "";
         [SerializeField] private int m_textureSize = 64;
 
         [SerializeField] private bool m_useNormal = false;
@@ -103,14 +104,14 @@ namespace Unity.HLODSystem
 
         public string MaterialGUID
         {
-            set { m_materialGUID = value; }
-            get { return m_materialGUID; }
+            set { m_highQualityMaterialGUID = value; }
+            get { return m_highQualityMaterialGUID; }
         }
 
         public string MaterialLowGUID
         {
-            set { m_materialLowGUID = value; }
-            get { return m_materialLowGUID; }
+            set { m_lowQualityMaterialGUID = value; }
+            get { return m_lowQualityMaterialGUID; }
         }
 
         public bool UseNormal

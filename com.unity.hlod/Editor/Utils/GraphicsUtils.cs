@@ -75,9 +75,40 @@ namespace Unity.HLODSystem.Utils
             return shaderName == null ? null : Shader.Find(shaderName);
         }
 
-        public static Shader GetDefaultTerrainShader()
+        // TODO: This doesn't make sense since there's multiple splatmap shaders (base and then additive ones for additional layers). This needs a rethink.
+        public static Shader GetDefaultSplatMapShader()
         {
-            var defaultTerrainShader = HLODEditorSettings.Instance.DefaultTerrainShader;
+            string shaderName = null;
+
+            switch (ActiveRenderPipeline)
+            {
+                case RenderPipeline.BuiltIn:
+                    shaderName = "Standard";
+                    break;
+                case RenderPipeline.URP:
+                    shaderName = "Universal Render Pipeline/Terrain/Lit";
+                    break;
+                case RenderPipeline.HDRP:
+                    shaderName = "HDRenderPipeline/TerrainLit";
+                    break;
+            }
+
+            return shaderName == null ? null : Shader.Find(shaderName);
+        }
+
+        public static Shader GetDefaultHighQualityTerrainShader()
+        {
+            var defaultTerrainShader = HLODEditorSettings.Instance.DefaultHighQualityTerrainShader;
+
+            if (defaultTerrainShader != null)
+                return defaultTerrainShader;
+
+            return GetDefaultShader();
+        }
+
+        public static Shader GetDefaultLowQualityTerrainShader()
+        {
+            var defaultTerrainShader = HLODEditorSettings.Instance.DefaultLowQualityTerrainShader;
 
             if (defaultTerrainShader != null)
                 return defaultTerrainShader;

@@ -8,6 +8,7 @@ using Unity.HLODSystem.SpaceManager;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using static Unity.HLODSystem.TerrainHLODData;
 
 namespace Unity.HLODSystem
 {
@@ -92,13 +93,13 @@ namespace Unity.HLODSystem
         {
             serializedObject.Update();
             EditorGUI.BeginChangeCheck();
-            
+
             TerrainHLOD hlod = target as TerrainHLOD;
             if (hlod == null)
             {
                 EditorGUILayout.LabelField("TerrainHLOD is null.");
                 return;
-            
+
             }
             isShowCommon = EditorGUILayout.BeginFoldoutHeaderGroup(isShowCommon, "Common");
             if (isShowCommon == true)
@@ -109,9 +110,9 @@ namespace Unity.HLODSystem
 
                 EditorGUILayout.PropertyField(m_DestroyTerrainProperty, Styles.DestroyTerrainText);
                 EditorGUILayout.PropertyField(m_ChunkSizeProperty);
-                
+
                 m_ChunkSizeProperty.floatValue = HLODUtils.GetChunkSizePropertyValue(m_ChunkSizeProperty.floatValue);
-                
+
                 var bounds = hlod.GetBounds();
                 int depth = m_splitter.CalculateTreeDepth(bounds, m_ChunkSizeProperty.floatValue);
                 EditorGUILayout.LabelField($"The HLOD tree will be created with {depth} levels.");
@@ -119,13 +120,13 @@ namespace Unity.HLODSystem
                 {
                     EditorGUILayout.LabelField($"Node Level Count greater than 5 may cause a frozen Editor.", Styles.RedTextColor);
                     EditorGUILayout.LabelField($"Use a value less than 5.", Styles.RedTextColor);
-                    
+
                 }
 
-                
+
                 EditorGUILayout.PropertyField(m_BorderVertexCountProperty);
                 m_LODSlider.Draw();
-                
+
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -143,7 +144,7 @@ namespace Unity.HLODSystem
                     {
                         if (info.IsStatic == true)
                         {
-                            info.Invoke(null, new object[] {hlod.SimplifierOptions});
+                            info.Invoke(null, new object[] { hlod.SimplifierOptions });
                         }
                     }
                 }
@@ -157,76 +158,117 @@ namespace Unity.HLODSystem
             isShowMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(isShowMaterial, "Material");
             if (isShowMaterial == true)
             {
-                Material mat = null;
-                string matGUID = hlod.MaterialGUID;
-                if (string.IsNullOrEmpty(matGUID) == false)
                 {
-                    string path = AssetDatabase.GUIDToAssetPath(matGUID);
-                    mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-                }
-                
-                mat = EditorGUILayout.ObjectField("Material", mat, typeof(Material), false) as Material;
-                if (mat != null)
-                {
-                    string path = AssetDatabase.GetAssetPath(mat);
-                    hlod.MaterialGUID = AssetDatabase.AssetPathToGUID(path);
+                    Material mat = null;
+                    string matGUID = hlod.MaterialGUID;
+                    if (string.IsNullOrEmpty(matGUID) == false)
+                    {
+                        string path = AssetDatabase.GUIDToAssetPath(matGUID);
+                        mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+                    }
+
+                    mat = EditorGUILayout.ObjectField("High Quality Material", mat, typeof(Material), false) as Material;
+                    if (mat != null)
+                    {
+                        string path = AssetDatabase.GetAssetPath(mat);
+                        hlod.MaterialGUID = AssetDatabase.AssetPathToGUID(path);
+                    }
+
+                    if (mat == null)
+                    {
+                        mat = new Material(GraphicsUtils.GetDefaultShader());
+                    }
+
+                    string[] outputTexturePropertyNames = mat.GetTexturePropertyNames();
+                    int index = 0;
+                    isShowTexturePropertices = EditorGUILayout.Foldout(isShowTexturePropertices, "Low Quality Texture propertices");
+
+                    if (isShowTexturePropertices == true)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.Toggle(true, GUILayout.Width(20));
+                        index = Array.IndexOf(outputTexturePropertyNames, hlod.AlbedoPropertyName);
+                        index = EditorGUILayout.Popup("Albedo", index, outputTexturePropertyNames);
+                        index = (index < 0) ? 0 : index;
+                        hlod.AlbedoPropertyName = outputTexturePropertyNames[index];
+                        EditorGUILayout.EndHorizontal();
+
+                        EditorGUILayout.BeginHorizontal();
+                        hlod.UseNormal = EditorGUILayout.Toggle(hlod.UseNormal, GUILayout.Width(20));
+                        index = Array.IndexOf(outputTexturePropertyNames, hlod.NormalPropertyName);
+                        index = EditorGUILayout.Popup("Normal", index, outputTexturePropertyNames);
+                        index = (index < 0) ? 0 : index;
+                        hlod.NormalPropertyName = outputTexturePropertyNames[index];
+                        EditorGUILayout.EndHorizontal();
+
+                        EditorGUILayout.BeginHorizontal();
+                        hlod.UseMask = EditorGUILayout.Toggle(hlod.UseMask, GUILayout.Width(20));
+                        index = Array.IndexOf(outputTexturePropertyNames, hlod.MaskPropertyName);
+                        index = EditorGUILayout.Popup("Mask", index, outputTexturePropertyNames);
+                        index = (index < 0) ? 0 : index;
+                        hlod.MaskPropertyName = outputTexturePropertyNames[index];
+                        EditorGUILayout.EndHorizontal();
+                    }
                 }
 
-                matGUID = hlod.MaterialLowGUID;
-                if (string.IsNullOrEmpty(matGUID) == false)
                 {
-                    string path = AssetDatabase.GUIDToAssetPath(matGUID);
-                    mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-                }
+                    Material mat = null;
+                    string matGUID = hlod.MaterialLowGUID;
+                    if (string.IsNullOrEmpty(matGUID) == false)
+                    {
+                        string path = AssetDatabase.GUIDToAssetPath(matGUID);
+                        mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+                    }
 
-                mat = EditorGUILayout.ObjectField("MaterialLow", mat, typeof(Material), false) as Material;
-                if (mat != null)
-                {
-                    string path = AssetDatabase.GetAssetPath(mat);
-                    hlod.MaterialLowGUID = AssetDatabase.AssetPathToGUID(path);
-                }
+                    mat = EditorGUILayout.ObjectField("Low Quality Material", mat, typeof(Material), false) as Material;
+                    if (mat != null)
+                    {
+                        string path = AssetDatabase.GetAssetPath(mat);
+                        hlod.MaterialLowGUID = AssetDatabase.AssetPathToGUID(path);
+                    }
 
-                hlod.TextureSize = EditorGUILayout.IntPopup("Size", hlod.TextureSize, Styles.TextureSizeStrings,
-                    Styles.TextureSizes);
-                //Output Property name
-                //EditorGUILayout.
-                if (mat == null)
-                {
-                    mat = new Material(GraphicsUtils.GetDefaultShader());
-                }
+                    hlod.TextureSize = EditorGUILayout.IntPopup("Size", hlod.TextureSize, Styles.TextureSizeStrings,
+                        Styles.TextureSizes);
+                    //Output Property name
+                    //EditorGUILayout.
+                    if (mat == null)
+                    {
+                        mat = new Material(GraphicsUtils.GetDefaultShader());
+                    }
 
-                string[] outputTexturePropertyNames = mat.GetTexturePropertyNames();
-                int index = 0;
-                isShowTexturePropertices = EditorGUILayout.Foldout(isShowTexturePropertices, "Texture propertices");
-                
-                if ( isShowTexturePropertices == true )
-                {
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.Toggle(true, GUILayout.Width(20));
-                    index = Array.IndexOf(outputTexturePropertyNames, hlod.AlbedoPropertyName);
-                    index = EditorGUILayout.Popup("Albedo", index, outputTexturePropertyNames);
-                    index = (index < 0) ? 0 : index;
-                    hlod.AlbedoPropertyName = outputTexturePropertyNames[index];
-                    EditorGUILayout.EndHorizontal();
-                    
-                    EditorGUILayout.BeginHorizontal();
-                    hlod.UseNormal = EditorGUILayout.Toggle(hlod.UseNormal, GUILayout.Width(20));
-                    index = Array.IndexOf(outputTexturePropertyNames, hlod.NormalPropertyName);
-                    index = EditorGUILayout.Popup("Normal", index, outputTexturePropertyNames);
-                    index = (index < 0) ? 0 : index;
-                    hlod.NormalPropertyName = outputTexturePropertyNames[index];
-                    EditorGUILayout.EndHorizontal();
+                    string[] outputTexturePropertyNames = mat.GetTexturePropertyNames();
+                    int index = 0;
+                    isShowTexturePropertices = EditorGUILayout.Foldout(isShowTexturePropertices, "Low Quality Texture propertices");
 
-                    EditorGUILayout.BeginHorizontal();
-                    hlod.UseMask = EditorGUILayout.Toggle(hlod.UseMask, GUILayout.Width(20));
-                    index = Array.IndexOf(outputTexturePropertyNames, hlod.MaskPropertyName);
-                    index = EditorGUILayout.Popup("Mask", index, outputTexturePropertyNames);
-                    index = (index < 0) ? 0 : index;
-                    hlod.MaskPropertyName = outputTexturePropertyNames[index];
-                    EditorGUILayout.EndHorizontal();
+                    if (isShowTexturePropertices == true)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.Toggle(true, GUILayout.Width(20));
+                        index = Array.IndexOf(outputTexturePropertyNames, hlod.AlbedoPropertyName);
+                        index = EditorGUILayout.Popup("Albedo", index, outputTexturePropertyNames);
+                        index = (index < 0) ? 0 : index;
+                        hlod.AlbedoPropertyName = outputTexturePropertyNames[index];
+                        EditorGUILayout.EndHorizontal();
+
+                        EditorGUILayout.BeginHorizontal();
+                        hlod.UseNormal = EditorGUILayout.Toggle(hlod.UseNormal, GUILayout.Width(20));
+                        index = Array.IndexOf(outputTexturePropertyNames, hlod.NormalPropertyName);
+                        index = EditorGUILayout.Popup("Normal", index, outputTexturePropertyNames);
+                        index = (index < 0) ? 0 : index;
+                        hlod.NormalPropertyName = outputTexturePropertyNames[index];
+                        EditorGUILayout.EndHorizontal();
+
+                        EditorGUILayout.BeginHorizontal();
+                        hlod.UseMask = EditorGUILayout.Toggle(hlod.UseMask, GUILayout.Width(20));
+                        index = Array.IndexOf(outputTexturePropertyNames, hlod.MaskPropertyName);
+                        index = EditorGUILayout.Popup("Mask", index, outputTexturePropertyNames);
+                        index = (index < 0) ? 0 : index;
+                        hlod.MaskPropertyName = outputTexturePropertyNames[index];
+                        EditorGUILayout.EndHorizontal();
+                    }
                 }
+                EditorGUILayout.EndFoldoutHeaderGroup();
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
 
             isShowStreaming = EditorGUILayout.BeginFoldoutHeaderGroup(isShowStreaming, "Streaming");
             if (isShowStreaming == true)

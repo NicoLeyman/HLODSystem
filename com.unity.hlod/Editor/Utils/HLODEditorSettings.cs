@@ -37,8 +37,11 @@ namespace Unity.HLODSystem
         public MaterialMapping DefaultMaterialMapping;
 
         // Terrain
-        public bool OverrideDefaultTerrainShader;
-        public Shader DefaultTerrainShader;
+        public bool OverrideDefaultHighQualityTerrainShader;
+        public Shader DefaultHighQualityTerrainShader;
+
+        public bool OverrideDefaultLowQualityTerrainShader;
+        public Shader DefaultLowQualityTerrainShader;
 
         internal static HLODEditorSettings GetOrCreateSettings()
         {
@@ -106,7 +109,8 @@ namespace Unity.HLODSystem
 
                         var terrainFoldout = new Foldout() { text = "Terrain", value = true };
                         properties.Add(terrainFoldout);
-                        terrainFoldout.Add(new OverridablePropertyElement(settings, nameof(DefaultTerrainShader), (bool o) => { return GraphicsUtils.GetDefaultTerrainShader().name; }, "Default Terrain Shader", "A value of null falls back to the common default shader."));
+                        terrainFoldout.Add(new OverridablePropertyElement(settings, nameof(DefaultHighQualityTerrainShader), (bool o) => { return GraphicsUtils.GetDefaultHighQualityTerrainShader().name; }, "Default High Quality Terrain Shader", "A value of null falls back to the active Render Pipeline's default terrain shader."));
+                        terrainFoldout.Add(new OverridablePropertyElement(settings, nameof(DefaultLowQualityTerrainShader), (bool o) => { return GraphicsUtils.GetDefaultLowQualityTerrainShader().name; }, "Default Low Quality Terrain Shader", "A value of null falls back to the common default shader."));
 
                         rootElement.Bind(settings);
                     },
