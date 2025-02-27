@@ -191,7 +191,7 @@ namespace Unity.HLODSystem.Utils
         public static T AddOrReplaceComponent<T>(GameObject gameOb) where T : Component
         {
             var type = typeof(T);
-            while(type != typeof(Component))
+            while(type != typeof(MonoBehaviour))
             {
                 if (gameOb.TryGetComponent(type, out var comp))
                 {

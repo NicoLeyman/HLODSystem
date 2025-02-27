@@ -313,6 +313,7 @@ namespace Unity.HLODSystem
 
         public static IEnumerator Destroy(HLOD hlod)
         {
+            hlod.TryGatheringGeneratedObjects();
 
             if (hlod.GeneratedObjects.Count == 0)
                 yield break;

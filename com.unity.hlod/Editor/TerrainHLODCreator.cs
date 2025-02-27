@@ -30,6 +30,8 @@ namespace Unity.HLODSystem
             if (controller == null)
                 yield break;
 
+            hlod.TryGatheringGeneratedObjects();
+
             try
             {
                 EditorUtility.DisplayProgressBar("Destroy HLOD", "Destroying HLOD files", 0.0f);
