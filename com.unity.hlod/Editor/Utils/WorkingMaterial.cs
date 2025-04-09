@@ -102,6 +102,11 @@ namespace Unity.HLODSystem.Utils
             return m_buffer.GetTexture(name);
         }
 
+        public bool HasColor(string name)
+        {
+            return m_buffer.HasColor(name);
+        }
+
         public Color GetColor(string name)
         {
             return m_buffer.GetColor(name);
@@ -350,6 +355,15 @@ namespace Unity.HLODSystem.Utils
                     return ret;
 
                 return null;
+            }
+        }
+
+
+        public bool HasColor(string name)
+        {
+            lock (m_colors)
+            {
+                return m_colors.ContainsKey(name);
             }
         }
 

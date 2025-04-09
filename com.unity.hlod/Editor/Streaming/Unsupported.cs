@@ -201,8 +201,8 @@ namespace Unity.HLODSystem.Streaming
 
             defaultController.Container = container;
             defaultController.Root = convertedRootNode;
-            defaultController.CullDistance = cullDistance;
-            defaultController.LODDistance = lodDistance;
+            defaultController.CullScreenRatioTreshold = cullDistance;
+            defaultController.LODScreenRatioTreshold = lodDistance;
             
             defaultController.UpdateMaxManualLevel();
         }

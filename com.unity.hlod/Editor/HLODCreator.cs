@@ -285,7 +285,7 @@ namespace Unity.HLODSystem
                         IStreamingBuilder builder =
                             (IStreamingBuilder)Activator.CreateInstance(hlod.StreamingType,
                                 new object[] { hlod, ri, hlod.StreamingOptions });
-                        builder.Build(rootNode, buildInfos, targetGameObject, hlod.CullDistance, hlod.LODDistance, false,
+                        builder.Build(rootNode, buildInfos, targetGameObject, hlod.CullScreenRatioTreshold, hlod.LODScreenRatioTreshold, false,
                             true,
                             progress =>
                             {

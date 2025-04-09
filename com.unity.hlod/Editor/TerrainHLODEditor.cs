@@ -121,10 +121,9 @@ namespace Unity.HLODSystem
                     EditorGUILayout.LabelField($"Use a value less than 5.", Styles.RedTextColor);
                     
                 }
-
-                
+              
                 EditorGUILayout.PropertyField(m_BorderVertexCountProperty);
-                m_LODSlider.Draw();
+                //m_LODSlider.Draw();
                 
             }
             EditorGUILayout.EndFoldoutHeaderGroup();

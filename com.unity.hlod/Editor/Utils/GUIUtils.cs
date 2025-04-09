@@ -100,8 +100,43 @@ namespace Unity.HLODSystem
                     ResolvedValueLabel.text = ResolvedValueLabelOnOverrideChange.Invoke(newValue);
                 }
             }
+        }   
+    }
+
+    public class DynamicAssetPropertyElement<T> : VisualElement where T : UnityEngine.Object
+    {
+        ObjectField ObjectField;
+
+        public T value
+        {
+            get { return (T)ObjectField.value; }
+            set { ObjectField.value = value; }
         }
-        
-       
+
+        public DynamicAssetPropertyElement(string label, string serializedAssetGUID, T defaultValue, Action<T, string> onValueChanged) 
+        {
+            string path = "";
+            T asset = null;
+            if (string.IsNullOrEmpty(serializedAssetGUID) == false)
+            {
+                path = AssetDatabase.GUIDToAssetPath(serializedAssetGUID);
+                asset = AssetDatabase.LoadAssetAtPath<T>(path);
+            }
+
+            ObjectField = new ObjectField() { label = label, allowSceneObjects = false, value = asset, objectType = typeof(T) };
+            Add(ObjectField);
+            ObjectField.RegisterValueChangedCallback((e) =>
+            {
+                asset = (T)e.newValue;
+                if (asset == null)
+                    asset = defaultValue;
+
+                path = AssetDatabase.GetAssetPath(asset);
+                var guid = AssetDatabase.AssetPathToGUID(path);
+
+                onValueChanged(asset, guid);
+            });
+
+        }
     }
 }

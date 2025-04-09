@@ -10,15 +10,14 @@ namespace Unity.HLODSystem
     public class MaterialMapping : ScriptableObject
     {
         public Shader Shader;
-        [SerializeField] 
-        private string ShaderGUID = "";
-        public bool EnableTintColor = true;
-        public string TintColorName = "_Color";
-        public string OutputTexturePropertyToTint = "";
+        public string ShaderGUID = "";
+        public string OutputTexturePropertyToTint = "_Color";
         public List<TextureInfo> TextureInfoList = new (){ };
         
         [NonSerialized]
         private string[] inputTexturePropertyNames = null;
+        [NonSerialized]
+        private string[] inputColorPropertyNames = null;
         [NonSerialized]
         private string[] outputTexturePropertyNames = null;
         [NonSerialized]
@@ -114,6 +113,10 @@ namespace Unity.HLODSystem
                 lastHLODReferenced = hlod;
             }
 
+            //if (inputColorPropertyNames == null && hlod != null)
+            //{
+            //    inputColorPropertyNames = GetAllMaterialColorProperties(hlod.gameObject);
+            //}
             if (inputTexturePropertyNames == null && hlod != null)
             {
                 inputTexturePropertyNames = GetAllMaterialTextureProperties(hlod.gameObject);
@@ -123,42 +126,40 @@ namespace Unity.HLODSystem
                 outputTexturePropertyNames = GetTexturePropertyNames(resolvedShader);
             }
             
-            //apply tint color
-            EnableTintColor =
-                EditorGUILayout.Toggle("Enable tint color", EnableTintColor);
-            if (EnableTintColor == true)
-            {
-                EditorGUI.indentLevel += 1;
+            ////apply tint color
+            //if (EnableTintColor == true)
+            //{
+            //    EditorGUI.indentLevel += 1;
                 
-                List<string> colorPropertyNames = new List<string>();
-                int propertyCount = ShaderUtil.GetPropertyCount(resolvedShader);
-                for (int i = 0; i < propertyCount; ++i)
-                {
-                    string name = ShaderUtil.GetPropertyName(resolvedShader, i);
-                    if (ShaderUtil.GetPropertyType(resolvedShader, i) == ShaderUtil.ShaderPropertyType.Color)
-                    {
-                        colorPropertyNames.Add(name);
-                    }
-                }
+            //    List<string> colorPropertyNames = new List<string>();
+            //    int propertyCount = ShaderUtil.GetPropertyCount(resolvedShader);
+            //    for (int i = 0; i < propertyCount; ++i)
+            //    {
+            //        string name = ShaderUtil.GetPropertyName(resolvedShader, i);
+            //        if (ShaderUtil.GetPropertyType(resolvedShader, i) == ShaderUtil.ShaderPropertyType.Color)
+            //        {
+            //            colorPropertyNames.Add(name);
+            //        }
+            //    }
 
-                int index = colorPropertyNames.IndexOf(TintColorName);
-                index = EditorGUILayout.Popup("Tint color property", index, colorPropertyNames.ToArray());
-                if (index >= 0)
-                {
-                    TintColorName = colorPropertyNames[index];
-                }
-                else
-                {
-                    TintColorName = "";
-                }
+            //    int index = colorPropertyNames.IndexOf(TintColorName);
+            //    index = EditorGUILayout.Popup("Tint color property", index, colorPropertyNames.ToArray());
+            //    if (index >= 0)
+            //    {
+            //        TintColorName = colorPropertyNames[index];
+            //    }
+            //    else
+            //    {
+            //        TintColorName = "";
+            //    }
 
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField(new GUIContent("Output Texture To Tint", "Any input texture mapped to this output property will try to apply the tint color if present on the input material."));
-                OutputTexturePropertyToTint = GUIUtils.StringPopup(OutputTexturePropertyToTint, outputTexturePropertyNames);
-                EditorGUILayout.EndHorizontal();
+            //    EditorGUILayout.BeginHorizontal();
+            //    EditorGUILayout.LabelField(new GUIContent("Output Texture To Tint", "Any input texture mapped to this output property will try to apply the tint color if present on the input material."));
+            //    OutputTexturePropertyToTint = GUIUtils.StringPopup(OutputTexturePropertyToTint, outputTexturePropertyNames);
+            //    EditorGUILayout.EndHorizontal();
 
-                EditorGUI.indentLevel -= 1;
-            }
+            //    EditorGUI.indentLevel -= 1;
+            //}
             
             EditorGUILayout.Space();
             textureSlotFoldout = EditorGUILayout.Foldout(textureSlotFoldout, "Textures");
@@ -191,34 +192,34 @@ namespace Unity.HLODSystem
 
                     EditorGUILayout.EndHorizontal();
 
-                    for (var inputIdx = 0; inputIdx < info.InputNames.Count; ++inputIdx)
+                    for (var inputIdx = 0; inputIdx < info.InputTexturePropertyNames.Count; ++inputIdx)
                     {
                         EditorGUILayout.BeginHorizontal();
                         EditorGUILayout.PrefixLabel(" ");
                         if (inputTexturePropertyNames == null)
                         {
-                            info.InputNames[inputIdx] = EditorGUILayout.TextField(info.InputNames[inputIdx]);
+                            info.InputTexturePropertyNames[inputIdx] = EditorGUILayout.TextField(info.InputTexturePropertyNames[inputIdx]);
                         }
                         else
                         {
-                            info.InputNames[inputIdx] = GUIUtils.StringPopup(info.InputNames[inputIdx], inputTexturePropertyNames);
+                            info.InputTexturePropertyNames[inputIdx] = GUIUtils.StringPopup(info.InputTexturePropertyNames[inputIdx], inputTexturePropertyNames);
                         }
 
-                        if (info.InputNames.Count <= 1)
+                        if (info.InputTexturePropertyNames.Count <= 1)
                             GUI.enabled = false;
                         if (GUILayout.Button("x", GUILayout.Width(20)) == true)
                         {
-                            info.InputNames.RemoveAt(inputIdx);
+                            info.InputTexturePropertyNames.RemoveAt(inputIdx);
                             inputIdx -= 1;
                         }
                         GUI.enabled = true;
 
-                        if (inputIdx != info.InputNames.Count - 1)
+                        if (inputIdx != info.InputTexturePropertyNames.Count - 1)
                             GUI.enabled = false;
                         if (GUILayout.Button("+", GUILayout.Width(20)) == true)
                         {
                             var defaultName = inputTexturePropertyNames != null ? inputTexturePropertyNames[0] : "";
-                            info.InputNames.Add(defaultName);
+                            info.InputTexturePropertyNames.Add(defaultName);
                         }
                         GUI.enabled = true;
 
@@ -261,7 +262,8 @@ namespace Unity.HLODSystem
     [Serializable]
     public class TextureInfo
     {
-        public List<string> InputNames = new List<string>() { "_InputProperty" };
+        public List<string> InputTexturePropertyNames = new List<string>() { "_InputTextureProperty" };
+        public List<string> InputColorPropertyNames = new List<string>() { "_InputColorProperty" };
         public string OutputName = "_OutputProperty";
         public PackingType Type = PackingType.White;
     }

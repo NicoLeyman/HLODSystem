@@ -263,8 +263,8 @@ namespace Unity.HLODSystem.Streaming
 
             addressableController.Container = container;
             addressableController.Root = convertedRootNode;
-            addressableController.CullDistance = cullDistance;
-            addressableController.LODDistance = lodDistance;
+            addressableController.CullScreenRatioTreshold = cullDistance;
+            addressableController.LODScreenRatioTreshold = lodDistance;
             
             addressableController.UpdateMaxManualLevel();
         }

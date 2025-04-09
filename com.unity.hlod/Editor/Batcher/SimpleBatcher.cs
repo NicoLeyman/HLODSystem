@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.HLODSystem.Utils;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 
 namespace Unity.HLODSystem
 {
@@ -76,8 +78,6 @@ namespace Unity.HLODSystem
             private DisposableDictionary<string, TexturePacker.MaterialTexture> m_textureCache;
             private DisposableDictionary<PackingType, WorkingTexture> m_defaultTextures;
                 
-            private bool m_enableTintColor;
-            private string m_tintColorName;
             private string m_outputTextureToTintName;
             private bool m_shouldUseTransparency;
 
@@ -86,8 +86,6 @@ namespace Unity.HLODSystem
             public MaterialTextureCache(MaterialMapping mapping)
             {
                 m_defaultTextures = CreateDefaultTextures();
-                m_enableTintColor = mapping.EnableTintColor;
-                m_tintColorName = mapping.TintColorName;
                 m_outputTextureToTintName = mapping.OutputTexturePropertyToTint;
                 m_textureInfoList = mapping.TextureInfoList;
                 m_textureCache = new DisposableDictionary<string, TexturePacker.MaterialTexture>();
@@ -101,7 +99,7 @@ namespace Unity.HLODSystem
 
                 if (m_textureCache.TryGetValue(material.Guid, out var textures))
                 {
-                    foreach (var inputName in m_textureInfoList[0].InputNames)
+                    foreach (var inputName in m_textureInfoList[0].InputTexturePropertyNames)
                     {
                         material.SetTexture(inputName, textures[0].Clone());
                     }
@@ -132,9 +130,9 @@ namespace Unity.HLODSystem
 
                     WorkingTexture tex = null;
 
-                    for (var inputIdx = 0; inputIdx < textureInfo.InputNames.Count; ++inputIdx)
+                    for (var inputIdx = 0; inputIdx < textureInfo.InputTexturePropertyNames.Count; ++inputIdx)
                     {
-                        tex = material.GetTexture(textureInfo.InputNames[inputIdx]);
+                        tex = material.GetTexture(textureInfo.InputTexturePropertyNames[inputIdx]);
 
                         if (tex != null)
                             break;
@@ -145,19 +143,21 @@ namespace Unity.HLODSystem
                         tex = m_defaultTextures[textureInfo.Type];
                     }
 
-                    // TODO: Allow color tint per layer input.
-                    if (m_enableTintColor && textureInfo.OutputName == m_outputTextureToTintName)
+                    bool takeTextureOwnership = false;
+                    for (var inputIdx = 0; inputIdx < textureInfo.InputColorPropertyNames.Count; ++inputIdx)
                     {
-                        Color tintColor = material.GetColor(m_tintColorName);
+                        var colorName = textureInfo.InputColorPropertyNames[inputIdx];
+                        if (material.HasColor(colorName))
+                        {
+                            var tintColor = material.GetColor(colorName);
+                            tex = tex.Clone();
+                            ApplyTintColor(tex, tintColor);
+                            takeTextureOwnership = true;
+                            break;
+                        }
+                    }
 
-                        tex = tex.Clone();
-                        ApplyTintColor(tex, tintColor);
-                        materialTexture.Add(tex, true);
-                    }
-                    else
-                    {
-                        materialTexture.Add(tex);
-                    }
+                    materialTexture.Add(tex, takeTextureOwnership);
                 }
 
                 m_textureCache.Add(material.Guid, materialTexture);
@@ -348,7 +348,7 @@ namespace Unity.HLODSystem
                 if (obj.Mesh == null)
                     continue;
 
-                ConvertMesh(obj.Mesh, obj.Materials, atlas, materialMapping.TextureInfoList[0].InputNames);
+                ConvertMesh(obj.Mesh, obj.Materials, atlas, materialMapping.TextureInfoList[0].InputTexturePropertyNames);
 
                 for (int si = 0; si < obj.Mesh.subMeshCount; ++si)
                 {
@@ -494,99 +494,146 @@ namespace Unity.HLODSystem
         {
             public static int[] PackTextureSizes = new int[]
             {
-                256, 512, 1024, 2048, 4096
+                256, 512, 1024, 2048, 4096, 8192, 16384
             };
-            public static string[] PackTextureSizeNames;
+            public static List<string> PackTextureSizeNames;
 
             public static int[] LimitTextureSizes = new int[]
             {
                 32, 64, 128, 256, 512, 1024
             };
-            public static string[] LimitTextureSizeNames;
+            public static List<string> LimitTextureSizeNames;
 
             static Styles()
             {
-                PackTextureSizeNames = new string[PackTextureSizes.Length];
+                PackTextureSizeNames = new List<string>(PackTextureSizes.Length);
                 for (int i = 0; i < PackTextureSizes.Length; ++i)
                 {
-                    PackTextureSizeNames[i] = PackTextureSizes[i].ToString();
+                    PackTextureSizeNames.Add(PackTextureSizes[i].ToString());
                 }
 
-                LimitTextureSizeNames = new string[LimitTextureSizes.Length];
+                LimitTextureSizeNames = new List<string>(LimitTextureSizes.Length);
                 for (int i = 0; i < LimitTextureSizes.Length; ++i)
                 {
-                    LimitTextureSizeNames[i] = LimitTextureSizes[i].ToString();
+                    LimitTextureSizeNames.Add(LimitTextureSizes[i].ToString());
                 }
             }
         }
         
         private static TextureInfo addingTextureInfo = new TextureInfo();
-        public static void OnGUI(HLOD hlod, bool isFirst)
+        public static VisualElement CreateGUI(HLOD hlod)
         {
-            EditorGUI.indentLevel += 1;
+            var root = new VisualElement();
+
             dynamic batcherOptions = hlod.BatcherOptions;
 
             SimpleBatcher.InitializeOptions(batcherOptions);
 
-            batcherOptions.PackTextureSize = EditorGUILayout.IntPopup("Pack texture size", batcherOptions.PackTextureSize, Styles.PackTextureSizeNames, Styles.PackTextureSizes);
-            batcherOptions.LimitTextureSize = EditorGUILayout.IntPopup("Limit texture size", batcherOptions.LimitTextureSize, Styles.LimitTextureSizeNames, Styles.LimitTextureSizes);
-
-            Material mat = null;
-
-            string matGUID = batcherOptions.MaterialGUID;
-            string path = "";
-            if (string.IsNullOrEmpty(matGUID) == false)
+            var packTextureSize = new DropdownField() { label = "Pack texture size" };
+            packTextureSize.choices = Styles.PackTextureSizeNames;
+            packTextureSize.value = batcherOptions.PackTextureSize.ToString();
+            packTextureSize.RegisterValueChangedCallback((e) =>
             {
-                path = AssetDatabase.GUIDToAssetPath(matGUID);
-                mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-            }
-            mat = EditorGUILayout.ObjectField("Material", mat, typeof(Material), false) as Material;
-            if( mat == null)
-                mat = new Material(GraphicsUtils.GetDefaultShader());
-            
-            batcherOptions.AllowAlphaClipping = EditorGUILayout.Toggle(new GUIContent("Allow Alpha Clipping", 
-            "Allows the batcher to enable Alpha Clipping on the HLOD material if any of the source materials use transparancy.") ,
-             (bool)batcherOptions.AllowAlphaClipping);
-            
-            path = AssetDatabase.GetAssetPath(mat);
-            matGUID = AssetDatabase.AssetPathToGUID(path);
+                batcherOptions.PackTextureSize = Styles.PackTextureSizes[Styles.PackTextureSizeNames.IndexOf(e.newValue)];
+            });
+            root.Add(packTextureSize);
 
-
-            EditorGUILayout.BeginHorizontal();
-            MaterialMapping materialMapping = batcherOptions.MaterialMapping;
-
-            if (batcherOptions.FoldoutMapping == null)
-                batcherOptions.FoldoutMapping = false;
-
-            batcherOptions.FoldoutMapping = EditorGUILayout.Foldout((bool)batcherOptions.FoldoutMapping, "Material Mapping");
-            batcherOptions.MaterialMappingGUID = GUIUtils.DynamicAssetPropertyGUI<MaterialMapping>(null, batcherOptions.MaterialMappingGUID, null, out materialMapping);
-            batcherOptions.MaterialMapping = materialMapping;
-            
-            // Resolve material mapping
-            if (materialMapping == null)
+            var limitTextureSize = new DropdownField() { label = "Texture size limit" };
+            limitTextureSize.choices = Styles.LimitTextureSizeNames;
+            limitTextureSize.value = batcherOptions.LimitTextureSize.ToString();
+            limitTextureSize.RegisterValueChangedCallback((e) =>
             {
-                materialMapping = HLODEditorSettings.Instance.DefaultMaterialMapping;
-            }
+                batcherOptions.LimitTextureSize = Styles.LimitTextureSizes[Styles.LimitTextureSizeNames.IndexOf(e.newValue)];
+            });
+            root.Add(limitTextureSize);
 
-            EditorGUILayout.EndHorizontal();
+            var materialElement = new ObjectField() { label = "Material", objectType = typeof(Material) };
+            root.Add(materialElement);
 
-            if (batcherOptions.FoldoutMapping != false)
             {
-                EditorGUILayout.Space(2.5f);
-                if (materialMapping == null)
+                Material mat = null;
+
+                string matGUID = batcherOptions.MaterialGUID;
+                string path = "";
+                if (string.IsNullOrEmpty(matGUID) == false)
                 {
-                    EditorGUILayout.HelpBox("Both this component's Material Mapping and the default are set to null.\nPlease assign a Material Mapping object to either this component or Preferences/HLOD/Default Material Mapping", MessageType.Error);
+                    path = AssetDatabase.GUIDToAssetPath(matGUID);
+                    mat = AssetDatabase.LoadAssetAtPath<Material>(path);
                 }
-                else
+                materialElement.SetValueWithoutNotify(mat);
+            }
+            materialElement.RegisterValueChangedCallback((e) =>
+            {
+                var mat = e.newValue;
+                if (mat == null)
+                    mat = new Material(GraphicsUtils.GetDefaultShader());
+
+                var path = AssetDatabase.GetAssetPath(mat);
+                var matGUID = AssetDatabase.AssetPathToGUID(path);
+
+                batcherOptions.MaterialGUID = matGUID;
+            });
+
+            var allowAlphaClippingElement = new Toggle() { 
+                label = "Allow Alpha Clipping", 
+                tooltip = "Allows the batcher to enable Alpha Clipping on the HLOD material if any of the source materials use transparancy.",
+                value = (bool)batcherOptions.AllowAlphaClipping
+            };
+            root.Add(allowAlphaClippingElement);
+
+            allowAlphaClippingElement.RegisterValueChangedCallback((e) => { batcherOptions.AllowAlphaClipping = (bool)e.newValue; });
+
+            {
+                MaterialMapping materialMapping = batcherOptions.MaterialMapping;
+
+                var mappingLabel = new Label() { text = "Both this component's Material Mapping and the default are set to null.\nPlease assign a Material Mapping object to either this component or Preferences/HLOD/Default Material Mapping" };
+                mappingLabel.style.whiteSpace = WhiteSpace.Normal;
+                mappingLabel.style.display = DisplayStyle.None;
+
+                var materialMappingElement = new MaterialMappingElement();
+
+                var materialMappingAssetElement = new DynamicAssetPropertyElement<MaterialMapping>("Material Mapping Asset", (string)batcherOptions.MaterialMappingGUID, null, (newValue, guid) =>
                 {
-                    bool textureSlotFoldout = batcherOptions.textureSlotFoldout;
-                    materialMapping.DrawGUI(hlod, ref textureSlotFoldout);
-                    batcherOptions.textureSlotFoldout = textureSlotFoldout;
+                    // Resolve material mapping
+                    var mapping = newValue;
+                    if (mapping == null)
+                    {
+                        mapping = HLODEditorSettings.Instance.DefaultMaterialMapping;
+                    }
+
+                    batcherOptions.MaterialMapping = mapping;
+                    batcherOptions.MaterialMappingGUID = guid;
+
+                    if (mapping == null)
+                    {
+                        mappingLabel.visible = true;
+                    }
+                    else
+                    {
+                        mappingLabel.visible = false;
+                        materialMappingElement.Bind(hlod, mapping);
+                    }
+                });
+                root.Add(materialMappingAssetElement);
+                materialMappingAssetElement.value = materialMapping;
+
+                var materialMappingFoldout = new Foldout() { text = "Material Mapping" };
+                root.Add(materialMappingFoldout);
+
+                materialMappingFoldout.Add(mappingLabel);
+                materialMappingFoldout.Add(materialMappingElement);
+
+                var resolvedMapping = materialMapping;
+                if (resolvedMapping == null)
+                {
+                    resolvedMapping = HLODEditorSettings.Instance.DefaultMaterialMapping;
                 }
+                materialMappingElement.Bind(hlod, resolvedMapping);
+
+                //materialMapping.DrawGUI(hlod, ref textureSlotFoldout);
             }
 
-            EditorGUI.indentLevel -= 1;
-            EditorGUI.indentLevel -= 1;
+            return root;
         }
     }
 

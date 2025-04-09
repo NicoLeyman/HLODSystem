@@ -13,19 +13,10 @@ namespace Unity.HLODSystem
         [SerializeField]
         private SerializableDynamicObject m_BatcherOptions = new SerializableDynamicObject();
 
-        private Type m_SpaceSplitterType;
         private Type m_BatcherType;
 
         [SerializeField]
-        private string m_SpaceSplitterTypeStr;
-        [SerializeField]
         private string m_BatcherTypeStr;
-
-        public Type SpaceSplitterType
-        {
-            set { m_SpaceSplitterType = value; }
-            get { return m_SpaceSplitterType; }
-        }
 
         public Type BatcherType
         {
@@ -44,12 +35,7 @@ namespace Unity.HLODSystem
             get { return m_MinObjectSize; }
         }
 
-        public SerializableDynamicObject SpaceSplitterOptions
-        {
-            get { return m_SpaceSplitterOptions; }
-        }
-
-        public Bounds GetBounds()
+        public override Bounds GetBounds()
         {
             Bounds ret = new Bounds();
             var renderers = GetComponentsInChildren<Renderer>();
@@ -77,8 +63,6 @@ namespace Unity.HLODSystem
         {
             base.OnBeforeSerialize();
 
-            if (m_SpaceSplitterType != null)
-                m_SpaceSplitterTypeStr = m_SpaceSplitterType.AssemblyQualifiedName;
             if ( m_BatcherType != null )
                 m_BatcherTypeStr = m_BatcherType.AssemblyQualifiedName;
         }
@@ -86,15 +70,6 @@ namespace Unity.HLODSystem
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
-
-            if (string.IsNullOrEmpty(m_SpaceSplitterTypeStr))
-            {
-                m_SpaceSplitterType = null;
-            }
-            else
-            {
-                m_SpaceSplitterType = Type.GetType(m_SpaceSplitterTypeStr);
-            }
 
             if (string.IsNullOrEmpty(m_BatcherTypeStr))
             {
