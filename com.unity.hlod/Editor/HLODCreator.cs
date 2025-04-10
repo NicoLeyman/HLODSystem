@@ -13,6 +13,7 @@ using Unity.HLODSystem.Streaming;
 using Unity.HLODSystem.Utils;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
+using UnityEngine.SceneManagement;
 
 namespace Unity.HLODSystem
 {
@@ -189,7 +190,25 @@ namespace Unity.HLODSystem
 
                 Bounds bounds = hlod.GetBounds();
 
-                List<GameObject> hlodTargets = ObjectUtils.HLODTargets(hlod.gameObject);
+                List<GameObject> hlodTargets = null;
+
+                if (hlod.OnlyIncludeHierarchy)
+                {
+                    hlodTargets = ObjectUtils.HLODTargets(hlod.gameObject);
+                }
+                else
+                {
+                    hlodTargets = new List<GameObject>();
+                    
+                    var sceneRoots = SceneManager.GetActiveScene().GetRootGameObjects();
+                    for(var s = 0; s < sceneRoots.Count(); ++s)
+                    {
+                        var sceneRoot = sceneRoots[s];
+
+                        hlodTargets.AddRange(ObjectUtils.HLODTargets(sceneRoot));
+                    }
+                }
+
                 ISpaceSplitter spliter = SpaceSplitterTypes.CreateInstance(hlod);
                 if (spliter == null)
                 {

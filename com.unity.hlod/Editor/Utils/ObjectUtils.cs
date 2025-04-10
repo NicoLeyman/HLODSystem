@@ -81,6 +81,24 @@ namespace Unity.HLODSystem.Utils
 
                 targets.Add(meshRenderers[ri].gameObject);
             }
+
+            // Filter excluded objects
+            var excludedObjects = root.GetComponentsInChildren<ExcludeFromHLOD>();
+            for(var e = 0; e < excludedObjects.Count(); ++e)
+            {
+                var excludedObject = excludedObjects[e];
+                targets.Remove(excludedObject.gameObject);
+
+                if (excludedObject.ExcludeChildren)
+                {
+                    var children = excludedObject.GetComponentsInChildren<Transform>();
+
+                    for (var c = 0; c < children.Length; ++c)
+                    {
+                        targets.Remove(children[c].gameObject);
+                    }
+                }
+            }
             
             //Combine several LODGroups and MeshRenderers belonging to Prefab into one.
             //Since the minimum unit of streaming is Prefab, it must be set to the minimum unit.

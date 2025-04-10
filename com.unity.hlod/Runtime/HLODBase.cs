@@ -11,6 +11,8 @@ namespace Unity.HLODSystem
     public abstract class HLODBase : MonoBehaviour, ISerializationCallbackReceiver, IGeneratedResourceManager
     {
         [SerializeField]
+        private bool m_OnlyIncludeHierarchy = false;
+        [SerializeField]
         protected float m_ChunkSize = 30.0f;
         [SerializeField]
         protected float m_LODDistance = 0.3f;
@@ -41,6 +43,12 @@ namespace Unity.HLODSystem
         protected string m_StreamingTypeStr;
         [SerializeField]
         protected string m_UserDataSerializerTypeStr;
+
+        public bool OnlyIncludeHierarchy
+        {
+            set { m_OnlyIncludeHierarchy = value; }
+            get { return m_OnlyIncludeHierarchy; }
+        }
 
         public float ChunkSize
         {

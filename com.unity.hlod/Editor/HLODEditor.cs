@@ -12,6 +12,7 @@ namespace Unity.HLODSystem
     {
         public static class Styles
         {
+            public static GUIContent OnlyIncludeHierarchy = new GUIContent("Only Include Hierarchy", "If true the HLOD baker will only include GameObjects nested under this GameObject. Otherwise it will include all GameObjects in the scene.");
             public static GUIContent GenerateButtonEnable = new GUIContent("Generate", "Generate HLOD mesh.");
             public static GUIContent RegenerateButtonEnable = new GUIContent("Regenerate", "Regenerate HLOD mesh.");
             public static GUIContent DestroyButtonEnable = new GUIContent("Destroy", "Destroy HLOD mesh.");
@@ -27,6 +28,7 @@ namespace Unity.HLODSystem
             }
 
         }        
+        private SerializedProperty m_OnlyIncludeHierarchyProperty;
         private SerializedProperty m_ChunkSizeProperty;
         private SerializedProperty m_LODDistanceProperty;
         private SerializedProperty m_CullDistanceProperty;
@@ -71,7 +73,8 @@ namespace Unity.HLODSystem
         }
 
         void OnEnable()
-        {            
+        {
+            m_OnlyIncludeHierarchyProperty = serializedObject.FindProperty("m_OnlyIncludeHierarchy");
             m_ChunkSizeProperty = serializedObject.FindProperty("m_ChunkSize");
             m_LODDistanceProperty = serializedObject.FindProperty("m_LODDistance");
             m_CullDistanceProperty = serializedObject.FindProperty("m_CullDistance");
@@ -118,6 +121,8 @@ namespace Unity.HLODSystem
             isShowCommon = EditorGUILayout.BeginFoldoutHeaderGroup(isShowCommon, "Common");
             if (isShowCommon == true)
             {
+                EditorGUILayout.PropertyField(m_OnlyIncludeHierarchyProperty);
+                
                 EditorGUILayout.PropertyField(m_ChunkSizeProperty);
 
                 m_ChunkSizeProperty.floatValue = HLODUtils.GetChunkSizePropertyValue(m_ChunkSizeProperty.floatValue);
