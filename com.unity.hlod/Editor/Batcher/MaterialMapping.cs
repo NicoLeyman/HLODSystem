@@ -262,8 +262,8 @@ namespace Unity.HLODSystem
     [Serializable]
     public class TextureInfo
     {
-        public List<string> InputTexturePropertyNames = new List<string>() { "_InputTextureProperty" };
-        public List<string> InputColorPropertyNames = new List<string>() { "_InputColorProperty" };
+        public List<string> InputTexturePropertyNames = new List<string>() { };
+        public List<string> InputColorPropertyNames = new List<string>() { };
         public string OutputName = "_OutputProperty";
         public PackingType Type = PackingType.White;
     }

@@ -23,7 +23,7 @@ namespace Unity.HLODSystem
     {
         public DropdownField Dropdown;
 
-        string InvalidName = "None";
+        public string InvalidName = "None";
 
         public ShaderDropdownField(string label, Action<Shader> onValueChanged)
         {
@@ -246,50 +246,11 @@ namespace Unity.HLODSystem
 
                 RefreshShaderProperties();
             });
-            ShaderDropdown.tooltip = "A value of null equals the value of Preferences/HLOD/Default Shader.";
+            ShaderDropdown.tooltip = $"A value of {ShaderDropdown.InvalidName} equals the value of Preferences/HLOD/Default Shader.";
             Add(ShaderDropdown);
-
-            //// TODO: make it possible to specify tint colors for different output texture layers.
-            //EnableTintColor = new Toggle("Enable tint color");
-            //Add(EnableTintColor);
-            //EnableTintColor.RegisterValueChangedCallback((e) =>
-            //{
-            //    Mapping.EnableTintColor = e.newValue;
-            //});
-
-            var tintColorFoldout = new Foldout();
-            Add(tintColorFoldout);
-
-
-            //{
-            //    // TODO: make it possible specify multiple inputs
-            //    TintColorInputDropdown = new DropdownField() { label = "Tint color input property", choices = inputColorPropertyNames };
-            //    tintColorFoldout.Add(TintColorInputDropdown);
-            //    TintColorInputDropdown.RegisterValueChangedCallback((e) =>
-            //    {
-            //        Mapping.TintColorInputName = e.newValue;
-            //    });
-
-            //    TintColorOutputDropdown = new DropdownField() { label = "Tint color output property", choices = outputColorPropertyNames };
-            //    tintColorFoldout.Add(TintColorOutputDropdown);
-            //    TintColorOutputDropdown.RegisterValueChangedCallback((e) =>
-            //    {
-            //        Mapping.TintColorOutputName = e.newValue;
-            //    });
-
-            //    TintColorOutputTextureDropdown = new DropdownField() { label = "Tint color output texture property", choices = outputTexturePropertyNames,
-            //        tooltip = "Any input texture mapped to this output property will try to apply the tint color if present on the input material."
-            //    };
-            //    tintColorFoldout.Add(TintColorOutputTextureDropdown);
-            //    TintColorOutputTextureDropdown.RegisterValueChangedCallback((e) =>
-            //    {
-            //        Mapping.OutputTexturePropertyToTint = e.newValue;
-            //    });
-            //}
 
             var textureSlotFoldout = new Foldout() { text = "Textures" };           
             {
-
                 var header = new VisualElement();
                 header.style.flexDirection = FlexDirection.Row;
                 textureSlotFoldout.Add(header);
