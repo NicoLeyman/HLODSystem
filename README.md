@@ -38,24 +38,6 @@ Uses the Simple Batcher to combine objects and relies on standard Unity LOD grou
 |HLOD On|223|6.4M|53.0|7.3|17.3|
 |Ratio|4.25%|47.76%|145.21%|55.30%|102.98%|
 
-## Latest Version: v0.0.3
-* Simple Batcher: Added a setting (default true) that enables Alpha Clipping on HLOD materials if any of the source materials use transparency.
-* Shadow proxies are now ignored when gathering MeshRenderers. Fixes these showing up in the generated HLOD meshes as untextured chunks of geometry that Z-fight.
-* Added an HLOD menu bar with buttons to regenerate or destroy all HLODs in the scene.
-
-### Issues:
-There's lots of known and unknown issues, keep in mind that this is not intended to be a remotely production ready solution.
-If you intend to use this for your project, you also own all of the issues that come with it:
-
-* Simple Batcher doesn't handle tiling texture coordinates well, resulting in warping as they'll be clamped to the atlas UV space assigned to them.
-* The new Material Mapping UX is a *little* messy.
-* Per-HLOD shader overrides are currently untested and unlikely to work.
-* The HLOD LOD distance set up automatically at generation time is usually too conservative, preserving visual quality but without offering any performance gains.
-* The HLOD LOD distance is also hard to reason about when tweaking manually, as it depends on the quality and other settings.
-* The HLOD Component contains a lot of data that ends up in the scene file. This can make small changes result in large commits when using a version control system.
-* The HLOD Data asset gets rather large, no effort has been made yet to optimize this.
-* Addressables haven't been tested post-U6 upgrade (v0.0.3)
-
 ## Getting Started
 For details on how to use the HLOD System, please refer to this guide: [User Guide][userGuide]
 
@@ -77,6 +59,45 @@ The following URL adds the additional package for Addressables support:
 ```
 https://github.com/NicoLeyman/HLODSystem.git?path=/com.unity.hlod.addressable
 ```
+## Latest Version: v0.0.3
+* Simple Batcher: Added a setting (default true) that enables Alpha Clipping on HLOD materials if any of the source materials use transparency.
+* Shadow proxies are now ignored when gathering MeshRenderers. Fixes these showing up in the generated HLOD meshes as untextured chunks of geometry that Z-fight.
+* Added an HLOD menu bar with buttons to regenerate or destroy all HLODs in the scene.
+
+### Issues:
+There's lots of known and unknown issues, keep in mind that this is not intended to be a remotely production ready solution.
+If you intend to use this for your project, you also own all of the issues that come with it:
+
+* Simple Batcher doesn't handle tiling texture coordinates well, resulting in warping as they'll be clamped to the atlas UV space assigned to them.
+* The new Material Mapping UX is a *little* messy.
+* Per-HLOD shader overrides are currently untested and unlikely to work.
+* The HLOD LOD distance set up automatically at generation time is usually too conservative, preserving visual quality but without offering any performance gains.
+* The HLOD LOD distance is also hard to reason about when tweaking manually, as it depends on the quality and other settings.
+* The HLOD Component contains a lot of data that ends up in the scene file. This can make small changes result in large commits when using a version control system.
+* The HLOD Data asset gets rather large, no effort has been made yet to optimize this.
+* Addressables haven't been tested post-U6 upgrade (v0.0.3)
+
+## Development
+### Next Version: v0.0.4
+As this is a side project, there is no guarantee of if/when time can be spend developing this package. New releases are made when sufficient features/fixes are ready and tested.
+The dev-X-Y-Z branches should be relatively stable, with larger and partially broken work being parked in sub-branches.
+Currently the following changes are on the radar, or being worked on in various stages of development, for an eventual release:
+#### Ready for testing
+* Fixes to the SimpleBatcher Material/Shader overrides.
+* Fixed nested prefab overrides getting ignored when using HLOD Addressables.
+* Various fixes to try to get Terrain HLOD functional in U6. Note: the Terrain HLOD feature does not seem very useful at this time.
+* Refactoring to reduce duplication between the HLOD and Terrain HLOD components.
+* Mark generated assets as Addressables to reduce duplication.
+#### In-development
+* Allow a single HLOD Component to include the entire scene, rather than just objects in its hierarchy.
+* Rewrite the HLOD, Batcher and Simplifier GUI to use UIToolkit.
+* Allow configuring multiple input color properties per output slot on the Simple Batcher. (Instead of just one input-output color for the entire atlas material.)
+
+### Contributing
+Feedback and/or assistance is welcomed. 
+* Check out the latest dev-X-Y-Z branch when looking to help find issues.
+* Similarly, when reporting issues in the latest release, check if the latest dev-X-Y-Z branch (or the section above) already mentions a fix.
+* For integration in actual projects, which should be done with caution as it's not an official production ready product, check out the latest release.
 
 ### License
 Copyright (c) 2025 Unity Technologies ApS
