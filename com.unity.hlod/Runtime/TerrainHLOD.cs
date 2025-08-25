@@ -94,6 +94,5 @@ namespace Unity.HLODSystem
                 return new Bounds();
             return new Bounds(m_TerrainData.size * 0.5f, m_TerrainData.size);
         }
-
     }
 }

@@ -63,7 +63,7 @@ namespace Unity.HLODSystem
         {
             base.OnBeforeSerialize();
 
-            if ( m_BatcherType != null )
+            if (m_BatcherType != null)
                 m_BatcherTypeStr = m_BatcherType.AssemblyQualifiedName;
         }
 
@@ -78,7 +78,7 @@ namespace Unity.HLODSystem
             else
             {
                 m_BatcherType = Type.GetType(m_BatcherTypeStr);
-            }       
+            }
         }
     }
 

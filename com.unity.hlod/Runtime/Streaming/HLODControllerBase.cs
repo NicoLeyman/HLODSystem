@@ -171,7 +171,7 @@ namespace Unity.HLODSystem.Streaming
             if (m_spaceManager == null)
                 return;
 
-            m_spaceManager.UpdateCamera(this.transform, camera);
+            m_spaceManager.UpdateCamera(this.transform, camera, m_lodBiasFactor);
 
             if ( m_controlMode == Mode.AutoControl)
                 m_root.Cull(m_spaceManager.IsCull(m_cullScreenRatioTreshold, m_root.Bounds));
@@ -247,6 +247,7 @@ namespace Unity.HLODSystem.Streaming
 
         [SerializeField] private float m_cullScreenRatioTreshold;
         [SerializeField] private float m_lodScreenRatioTreshold;
+        [SerializeField] private float m_lodBiasFactor;
         
         [SerializeField]
         private int m_controllerID;
@@ -316,6 +317,12 @@ namespace Unity.HLODSystem.Streaming
         {
             set { m_lodScreenRatioTreshold = value; }
             get { return m_lodScreenRatioTreshold; }
+        }
+
+        public float LODBiasFactor
+        {
+            set { m_lodBiasFactor = value; }
+            get { return m_lodBiasFactor; }
         }
         #endregion
 

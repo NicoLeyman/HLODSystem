@@ -72,7 +72,7 @@ namespace Unity.HLODSystem
 #if UNITY_EDITOR
                 if (TryGetComponent(out HLODControllerBase controller))
                 {
-                    controller.CullScreenRatioTreshold = m_LODScreenRatioThreshold;
+                    controller.CullScreenRatioTreshold = m_CullScreenRatioThreshold;
                 }
 #endif
             }
@@ -117,17 +117,6 @@ namespace Unity.HLODSystem
             get { return m_SimplifierOptions; }
         }
 
-#if UNITY_EDITOR
-        public List<Object> GeneratedObjects
-        {
-            get { return m_generatedObjects; }
-        }
-
-        public List<GameObject> ConvertedPrefabObjects
-        {
-            get { return m_convertedPrefabObjects; }
-        }
-
         public virtual void OnBeforeSerialize()
         {
             if (m_SpaceSplitterType != null)
@@ -139,6 +128,7 @@ namespace Unity.HLODSystem
             if (m_UserDataSerializerType != null)
                 m_UserDataSerializerTypeStr = m_UserDataSerializerType.AssemblyQualifiedName;
         }
+
         public virtual void OnAfterDeserialize()
         {
             if (string.IsNullOrEmpty(m_SpaceSplitterTypeStr))
@@ -193,6 +183,17 @@ namespace Unity.HLODSystem
         }
 
         public abstract Bounds GetBounds();
+
+#if UNITY_EDITOR
+        public List<Object> GeneratedObjects
+        {
+            get { return m_generatedObjects; }
+        }
+
+        public List<GameObject> ConvertedPrefabObjects
+        {
+            get { return m_convertedPrefabObjects; }
+        }
 
         public List<HLODControllerBase> GetHLODControllerBases()
         {

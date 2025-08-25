@@ -150,6 +150,7 @@ namespace Unity.HLODSystem
                 m_LODSlider = new LODSlider(true, "Cull");
                 m_LODSlider.InsertRange("High", m_LODDistanceProperty);
                 m_LODSlider.InsertRange("Low", m_CullDistanceProperty);
+                m_LODSlider.tooltip = "High refers to the fraction of the screen width above which an HLOD cell is replaced by more detailed cells from the next level of the HLOD tree. The screen width is multiplied by QualitySettings.lodBias when comparing against this treshold.";
                 Common.Add(m_LODSlider);
             }
 
@@ -379,6 +380,7 @@ namespace Unity.HLODSystem
             generatedObjectView.itemsAdded += (a) => OnHLODGeneratedObjectChanged();
             generatedObjectView.itemsRemoved += (r) => OnHLODGeneratedObjectChanged();
             Add(generatedObjectView);
+            generatedObjectView.style.maxHeight = 0;
             generatedObjectView.visible = false;
 
             OnHLODGeneratedObjectChanged();
