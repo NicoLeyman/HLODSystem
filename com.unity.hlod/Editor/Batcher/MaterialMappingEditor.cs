@@ -10,12 +10,14 @@ namespace Unity.HLODSystem
     [CustomEditor(typeof(MaterialMapping))]
     public class MaterialMappingEditor : Editor
     {
-        bool textureSlotFoldout = false;
-
-        public override void OnInspectorGUI()
+        public override VisualElement CreateInspectorGUI()
         {
             var materialMapping = target as MaterialMapping;
-            materialMapping.DrawGUI(null, ref textureSlotFoldout);
+
+            var materialMappingEditor = new MaterialMappingElement();
+            materialMappingEditor.Bind(null, materialMapping);
+
+            return materialMappingEditor;
         }
     }
 

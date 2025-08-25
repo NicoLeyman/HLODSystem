@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.HLODSystem.SpaceManager;
 using Unity.HLODSystem.Utils;
 using UnityEditor;
@@ -30,16 +29,16 @@ namespace Unity.HLODSystem
         private LODSlider m_LODSlider;
 
         private Type[] m_SpaceSplitterTypes;
-        private List<string> m_SpaceSplitterNames;
+        private List<string> m_SpaceSplitterNames = new List<string>();
 
         private Type[] m_SimplifierTypes;
-        private List<string> m_SimplifierNames;
+        private List<string> m_SimplifierNames = new List<string>();
 
         private Type[] m_StreamingTypes;
-        private List<string> m_StreamingNames;
+        private List<string> m_StreamingNames = new List<string>();
 
         private Type[] m_UserDataSerializerTypes;
-        private List<string> m_UserDataSerializerNames;
+        private List<string> m_UserDataSerializerNames = new List<string>();
         
         private ISpaceSplitter m_splitter;
 
@@ -68,31 +67,49 @@ namespace Unity.HLODSystem
         public Foldout Streaming;
         public Foldout UserDataSerializer;
 
+        Button DestroyButton;
+
         public void SetDirtyAndApply(SerializedObject serializedObject, HLODBase hlod)
         {
             EditorUtility.SetDirty(hlod);
             serializedObject.ApplyModifiedProperties();
         }
 
+        HLODBase TargetHLOD;
+
         public HLODBaseEditor(HLODBase hlod, SerializedObject serializedObject)
         {
+            TargetHLOD = hlod;
+
             m_SpaceSplitterTypes = SpaceManager.SpaceSplitterTypes.GetTypes();
-            m_SpaceSplitterNames = m_SpaceSplitterTypes.Select(t => t.Name).ToList();
+            foreach(var t in m_SpaceSplitterTypes)
+            {
+                m_SpaceSplitterNames.Add(t.Name);
+            }
 
             m_SimplifierTypes = HLODSystem.Simplifier.SimplifierTypes.GetTypes();
-            m_SimplifierNames = m_SimplifierTypes.Select(t => t.Name).ToList();
+            foreach (var t in m_SimplifierTypes)
+            {
+                m_SimplifierNames.Add(t.Name);
+            }
             m_SimplifierNames = new List<string>(m_SimplifierTypes.Length);
             for (var i = 0; i < m_SimplifierTypes.Length; ++i)
                 m_SimplifierNames.Add(m_SimplifierTypes[i].Name);
 
             m_StreamingTypes = HLODSystem.Streaming.StreamingBuilderTypes.GetTypes();
-            m_StreamingNames = m_StreamingTypes.Select(t => t.Name).ToList();
+            foreach (var t in m_StreamingTypes)
+            {
+                m_StreamingNames.Add(t.Name);
+            }
             m_StreamingNames = new List<string>(m_StreamingTypes.Length);
             for (var i = 0; i < m_StreamingTypes.Length; ++i)
                 m_StreamingNames.Add(m_StreamingTypes[i].Name);
 
             m_UserDataSerializerTypes = Serializer.UserDataSerializerTypes.GetTypes();
-            m_UserDataSerializerNames = m_UserDataSerializerTypes.Select(t => t.Name).ToList();
+            foreach (var t in m_UserDataSerializerTypes)
+            {
+                m_UserDataSerializerNames.Add(t.Name);
+            }
             m_UserDataSerializerNames = new List<string>(m_UserDataSerializerTypes.Length);
             for (var i = 0; i < m_UserDataSerializerTypes.Length; ++i)
                 m_UserDataSerializerNames.Add(m_UserDataSerializerTypes[i].Name);
@@ -313,17 +330,6 @@ namespace Unity.HLODSystem
                 }
             }
 
-
-            //TODO: to add the functionality back in to disable the destroy button when there's no data to destroy, we need either a callback (bleh) or a way to poll at the right moment what the state should be.
-            //GUIContent generateButtonStyle = Styles.GenerateButtonEnable;
-            //GUIContent destroyButtonStyle = Styles.DestroyButtonNotExists;
-
-            //if (hlod.GeneratedObjects.Count > 0 )
-            //{
-            //    generateButtonStyle = Styles.RegenerateButtonEnable;
-            //    destroyButtonStyle = Styles.DestroyButtonEnable;
-            //}
-
             var generateButton = new Button() { name = "Generate" };
             generateButton.text = generateButton.name;
             generateButton.clicked += () =>
@@ -351,9 +357,9 @@ namespace Unity.HLODSystem
             };
             Add(generateButton);
 
-            var destroyButton = new Button() { name = "Destroy" };
-            destroyButton.text = destroyButton.name;
-            destroyButton.clicked += () =>
+            DestroyButton = new Button() { name = "Destroy" };
+            DestroyButton.text = DestroyButton.name;
+            DestroyButton.clicked += () =>
             {
                 if (hlod is HLOD)
                 {
@@ -364,12 +370,28 @@ namespace Unity.HLODSystem
                     CoroutineRunner.RunCoroutine(TerrainHLODCreator.Destroy(hlod as TerrainHLOD));
                 }
             };
-            Add(destroyButton);
+            Add(DestroyButton);
+
+            // We don't actually want to show the list of generated object, at this time at least.
+            // We do however want to be able to tell when the generated object count changes, re-using the list-binding and callbacks from ListView is convenient here.
+            var generatedObjectView = new ListView() { name = "GeneratedObjects"};
+            generatedObjectView.itemsSource = hlod.GeneratedObjects;
+            generatedObjectView.itemsAdded += (a) => OnHLODGeneratedObjectChanged();
+            generatedObjectView.itemsRemoved += (r) => OnHLODGeneratedObjectChanged();
+            Add(generatedObjectView);
+            generatedObjectView.visible = false;
+
+            OnHLODGeneratedObjectChanged();
 
             //if (EditorGUI.EndChangeCheck())
             //{
             //    EditorUtility.SetDirty(hlod);
             //}
+        }
+
+        private void OnHLODGeneratedObjectChanged()
+        {
+            DestroyButton.enabledSelf = TargetHLOD.GeneratedObjects.Count > 0;
         }
 
     }

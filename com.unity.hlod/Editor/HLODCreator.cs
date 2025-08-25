@@ -233,7 +233,7 @@ namespace Unity.HLODSystem
                         }
 
 
-                        Debug.Log("[HLOD] Splite space: " + sw.Elapsed.ToString("g"));
+                        Debug.Log("[HLOD] Split space: " + sw.Elapsed.ToString("g"));
                         sw.Reset();
                         sw.Start();
 
