@@ -11,7 +11,7 @@ namespace Unity.HLODSystem
     public abstract class HLODBase : MonoBehaviour, ISerializationCallbackReceiver, IGeneratedResourceManager
     {
         [SerializeField]
-        private bool m_OnlyIncludeHierarchy = false;
+        private bool m_OnlyIncludeHierarchy = true;
         [SerializeField]
         protected float m_ChunkSize = 30.0f;
         [SerializeField]

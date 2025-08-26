@@ -25,6 +25,7 @@ namespace Unity.HLODSystem
         private SerializedProperty m_ChunkSizeProperty;
         private SerializedProperty m_LODDistanceProperty;
         private SerializedProperty m_CullDistanceProperty;
+        private SerializedProperty m_OnlyIncludeHierarchyProperty;
 
         private LODSlider m_LODSlider;
 
@@ -117,6 +118,7 @@ namespace Unity.HLODSystem
             m_ChunkSizeProperty = serializedObject.FindProperty("m_ChunkSize");
             m_LODDistanceProperty = serializedObject.FindProperty("m_LODScreenRatioThreshold");
             m_CullDistanceProperty = serializedObject.FindProperty("m_CullScreenRatioThreshold");
+            m_OnlyIncludeHierarchyProperty = serializedObject.FindProperty("m_OnlyIncludeHierarchy");
 
             Properties = new VisualElement();
             Add(Properties);
@@ -126,6 +128,10 @@ namespace Unity.HLODSystem
                 Common.text = "Common";
                 Common.name = Common.text;
                 Properties.Add(Common);
+
+                var onlyIncludeHierarchy = new PropertyField(m_OnlyIncludeHierarchyProperty, "Only include hierarchy");
+                onlyIncludeHierarchy.tooltip = "If true only children of this GameObject will be considered for inclusion into the HLOD. Otherwise the entire scene is evaluated.";
+                Common.Add(onlyIncludeHierarchy);
 
                 var chunkSize = new PropertyField(m_ChunkSizeProperty);
                 Common.Add(chunkSize);

@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.HLODSystem.SpaceManager;
 using Unity.HLODSystem.Utils;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -32,7 +30,6 @@ namespace Unity.HLODSystem
 
         }        
 
-        private SerializedProperty m_OnlyIncludeHierarchyProperty;
         private SerializedProperty m_MinObjectSizeProperty;
 
         private Type[] m_BatcherTypes;
@@ -64,8 +61,6 @@ namespace Unity.HLODSystem
                 m_BatcherNames.Add(m_BatcherTypes[i].Name);
 
             m_MinObjectSizeProperty = serializedObject.FindProperty("m_MinObjectSize");
-            
-            m_OnlyIncludeHierarchyProperty = serializedObject.FindProperty("m_OnlyIncludeHierarchy");
 
             hlodEditor.Common.Add(new PropertyField(m_MinObjectSizeProperty));
 
@@ -118,10 +113,7 @@ namespace Unity.HLODSystem
 
             var info = m_BatcherTypes[batcherIndex].GetMethod("CreateGUI");
             if (info != null)
-            {
-
-                EditorGUILayout.PropertyField(m_OnlyIncludeHierarchyProperty);
-                
+            {                
                 if (info.IsStatic == true)
                 {
                     BatcherOptions = info.Invoke(null, new object[] { hlod }) as VisualElement;
