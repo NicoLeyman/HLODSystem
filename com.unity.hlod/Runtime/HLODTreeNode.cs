@@ -416,7 +416,7 @@ namespace Unity.HLODSystem
 
         public void Update(HLODControllerBase.Mode mode, int manualLevel, float lodDistance)
         {
-            m_distance = m_spaceManager.GetDistanceSqure(m_bounds) - m_boundsLength;
+            m_distance = m_spaceManager.GetDistanceSquare(m_bounds) - m_boundsLength;
 
             var beforeState = m_fsm.CurrentState;
 

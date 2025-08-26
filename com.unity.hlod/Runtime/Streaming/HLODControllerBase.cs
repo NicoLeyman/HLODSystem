@@ -171,16 +171,16 @@ namespace Unity.HLODSystem.Streaming
             if (m_spaceManager == null)
                 return;
 
-            m_spaceManager.UpdateCamera(this.transform, camera);
+            m_spaceManager.UpdateCamera(this.transform, camera, m_lodBiasFactor);
 
             if ( m_controlMode == Mode.AutoControl)
-                m_root.Cull(m_spaceManager.IsCull(m_cullDistance, m_root.Bounds));
+                m_root.Cull(m_spaceManager.IsCull(m_cullScreenRatioTreshold, m_root.Bounds));
             else if (m_controlMode == Mode.ManualControl && m_manualLevel.value < 0 )
                 m_root.Cull(true);
             else
                 m_root.Cull(false);
             
-            m_root.Update(m_controlMode, m_manualLevel.value, m_lodDistance);
+            m_root.Update(m_controlMode, m_manualLevel.value, m_lodScreenRatioTreshold);
         }
 
         public bool IsLoadDone()
@@ -245,8 +245,9 @@ namespace Unity.HLODSystem.Streaming
         [SerializeField]
         private HLODTreeNode m_root;
 
-        [SerializeField] private float m_cullDistance;
-        [SerializeField] private float m_lodDistance;
+        [SerializeField] private float m_cullScreenRatioTreshold;
+        [SerializeField] private float m_lodScreenRatioTreshold;
+        [SerializeField] private float m_lodBiasFactor;
         
         [SerializeField]
         private int m_controllerID;
@@ -306,16 +307,22 @@ namespace Unity.HLODSystem.Streaming
             get { return m_root; }
         }
 
-        public float CullDistance
+        public float CullScreenRatioTreshold
         {
-            set { m_cullDistance = value; }
-            get { return m_cullDistance; }
+            set { m_cullScreenRatioTreshold = value; }
+            get { return m_cullScreenRatioTreshold; }
         }
 
-        public float LODDistance
+        public float LODScreenRatioTreshold
         {
-            set { m_lodDistance = value; }
-            get { return m_lodDistance; }
+            set { m_lodScreenRatioTreshold = value; }
+            get { return m_lodScreenRatioTreshold; }
+        }
+
+        public float LODBiasFactor
+        {
+            set { m_lodBiasFactor = value; }
+            get { return m_lodBiasFactor; }
         }
         #endregion
 

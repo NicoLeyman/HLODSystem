@@ -12,7 +12,7 @@ namespace Unity.HLODSystem.SpaceManager
         public QuadTreeSpaceManager()
         {
         }
-        public void UpdateCamera(Transform hlodTransform, Camera cam)
+        public void UpdateCamera(Transform hlodTransform, Camera cam, float lodBiasFactor)
         {
             if (cam.orthographic)
             {
@@ -37,7 +37,7 @@ namespace Unity.HLODSystem.SpaceManager
             return relativeHeight > lodDistance;
         }
 
-        public float GetDistanceSqure(Bounds bounds)
+        public float GetDistanceSquare(Bounds bounds)
         {
             float x = bounds.center.x - camPosition.x;
             float z = bounds.center.z - camPosition.z;
@@ -56,10 +56,13 @@ namespace Unity.HLODSystem.SpaceManager
 
         private float GetDistance(Vector3 boundsPos, Vector3 camPos)
         {
-            float x = boundsPos.x - camPos.x;
-            float z = boundsPos.z - camPos.z;
-            float square = x * x + z * z;
-            return Mathf.Sqrt(square);
+            // XYZ distance as even quadtrees should lose detail when above the world.
+            return (boundsPos - camPos).magnitude;
+
+            //float x = boundsPos.x - camPos.x;
+            //float z = boundsPos.z - camPos.z;
+            //float square = x * x + z * z;
+            //return Mathf.Sqrt(square);
         }
 
        

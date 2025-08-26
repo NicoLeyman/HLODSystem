@@ -88,12 +88,11 @@ namespace Unity.HLODSystem
             get { return m_maskPropertyName; }
         }
         
-        public Bounds GetBounds()
+        public override Bounds GetBounds()
         {
             if ( m_TerrainData == null )
                 return new Bounds();
             return new Bounds(m_TerrainData.size * 0.5f, m_TerrainData.size);
         }
-
     }
 }

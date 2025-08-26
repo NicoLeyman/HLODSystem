@@ -1,11 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Unity.HLODSystem
 {
-    public class LODSlider
+    public class LODSlider : VisualElement
     {
         public readonly Color[] kLODColors =
         {
@@ -21,46 +21,32 @@ namespace Unity.HLODSystem
 
         public static readonly Color kDefaultLODColor = new Color(.4f, 0f, 0f, 1f);
         public const int k_SliderBarHeight = 30;
-        
-        class GUIStyles
-        {
-            public readonly GUIStyle LODSliderBG = "LODSliderBG";
-            
-
-            public GUIStyles()
-            {
-
-            }
-        }
-
-        private static GUIStyles s_Styles;
-
-        
-        private int m_SliderID = typeof(LODSlider).GetHashCode();
 
         private int m_SelectedIndex = -1;
         private LODSliderRange m_DefaultRange = null;
 
         private List<LODSliderRange> m_RangeList = new List<LODSliderRange>();
-        
-        private static GUIStyles Styles
-        {
-            get
-            {
-                if (s_Styles == null)
-                    s_Styles = new GUIStyles();
-                return s_Styles;
-            }
-        }
 
         public LODSlider(bool useDefault = false, string name = "")
         {
-            if (useDefault == true)
+            if (useDefault)
             {
                 var defaultRange = new LODSliderRange();
                 defaultRange.Name = name;
                 m_DefaultRange = defaultRange;
             }
+
+            generateVisualContent += OnGenerateVisualContent;
+
+            RegisterCallback<MouseMoveEvent>(OnMouseMove);
+            RegisterCallback<MouseDownEvent>(OnMouseDown);
+            RegisterCallback<MouseUpEvent>(OnMouseUp);
+
+            style.width = new StyleLength(new Length(100.0f, LengthUnit.Percent));
+            style.height = new StyleLength(new Length(30.0f, LengthUnit.Pixel));
+
+            style.color = Color.white;
+            focusable = true;
         }
 
         public void InsertRange(string name, SerializedProperty property)
@@ -87,103 +73,156 @@ namespace Unity.HLODSystem
             return m_RangeList.Count;
         }
 
+        //public void Draw()
+        //{
+        //    var sliderBarPosition = GUILayoutUtility.GetRect(0, k_SliderBarHeight, GUILayout.ExpandWidth(true));
+        //    sliderBarPosition.width -= 5;   //< for margin
+        //    Draw(sliderBarPosition);
+        //}
 
-        public void Draw()
+        internal static void DrawRect(Painter2D painter, Rect rect, Color fillColor)
         {
-            var sliderBarPosition = GUILayoutUtility.GetRect(0, k_SliderBarHeight, GUILayout.ExpandWidth(true));
-            sliderBarPosition.width -= 5;   //< for margin
-            Draw(sliderBarPosition);
+            painter.BeginPath();
+
+            painter.MoveTo(new Vector2(rect.xMin, rect.yMax));
+            painter.LineTo(new Vector2(rect.xMax, rect.yMax));
+            painter.LineTo(new Vector2(rect.xMax, rect.yMin));
+            painter.LineTo(new Vector2(rect.xMin, rect.yMin));
+
+            painter.ClosePath();
+            painter.fillColor = fillColor;
+            painter.Fill();
         }
-        public void Draw(Rect sliderBarPosition)
+
+        void OnMouseDown(MouseDownEvent e)
         {
-            
+            int count = m_RangeList.Count;
+            if (m_DefaultRange == null)
+                count -= 1;
 
-            Event evt = Event.current;
-            int sliderId = GUIUtility.GetControlID(m_SliderID, FocusType.Passive);
+            var sliderBarPosition = SliderBarPosition;
+            var relativeMousePosition = e.localMousePosition + new Vector2(SliderBarPosition.xMin, SliderBarPosition.yMin);
 
-            switch (evt.GetTypeForControl(sliderId))
+            for (int i = 0; i < count; ++i)
             {
-                case EventType.Repaint:
+                Rect resizeArea = m_RangeList[i].GetResizeArea(sliderBarPosition);
+
+                if (resizeArea.Contains(relativeMousePosition) == true)
                 {
-                    Styles.LODSliderBG.Draw(sliderBarPosition, GUIContent.none, false, false, false, false);
-
-                    float startPosition = 1.0f;
-                    for (int i = 0; i < m_RangeList.Count; ++i)
-                    {
-                        m_RangeList[i].Draw(sliderBarPosition, kLODColors[i], startPosition);
-                        //if default range has not existed then last range should not be drawn.
-
-                        if (GUI.enabled == true)
-                        {
-                            if (i != m_RangeList.Count - 1 || m_DefaultRange != null)
-                                m_RangeList[i].DrawCursor(sliderBarPosition);
-                        }
-
-                        startPosition = m_RangeList[i].EndPosition;
-                    }
-
-                    if (m_DefaultRange != null)
-                    {
-                        m_DefaultRange.Draw(sliderBarPosition, kDefaultLODColor, startPosition);
-                    }
-                    break;
-                }
-
-                case EventType.MouseDown:
-                {
-                    int count = m_RangeList.Count;
-                    if (m_DefaultRange == null)
-                        count -= 1;
-
-                    for (int i = 0; i < count; ++i)
-                    {
-                        Rect resizeArea = m_RangeList[i].GetResizeArea(sliderBarPosition);
-
-                        if (resizeArea.Contains(evt.mousePosition) == true)
-                        {
-                            evt.Use();
-                            GUIUtility.hotControl = sliderId;
-                            m_SelectedIndex = i;
-                            break;
-                        }
-                    }
-
-                    break;
-                }
-                case EventType.MouseDrag:
-                {
-
-                    if (GUIUtility.hotControl == sliderId && m_SelectedIndex >= 0)
-                    {
-                        evt.Use();
-
-                        var percentage =
-                            1.0f - Mathf.Clamp((evt.mousePosition.x - sliderBarPosition.x) / sliderBarPosition.width,
-                                0.01f, 1.0f);
-                        percentage = (percentage * percentage);
-
-                        if (m_RangeList[m_SelectedIndex].Property != null)
-                        {
-                            m_RangeList[m_SelectedIndex].Property.floatValue = percentage;
-                        }
-                        GUI.changed = true;
-                    }
-
-                    break;
-                }
-                case EventType.MouseUp:
-                {
-                    if (GUIUtility.hotControl == sliderId)
-                    {
-                        evt.Use();
-                        m_SelectedIndex = -1;
-                        GUIUtility.hotControl = 0;
-                    }
+                    e.StopPropagation();
+                    m_SelectedIndex = i;
                     break;
                 }
             }
         }
 
-    }
+        void OnMouseMove(MouseMoveEvent e)
+        {
+            MarkDirtyRepaint();
 
+            // Drag?
+            if (m_SelectedIndex >= 0)
+            {
+                var sliderBarPosition = SliderBarPosition;
+                var relativeMousePosition = e.localMousePosition + new Vector2(SliderBarPosition.xMin, SliderBarPosition.yMin);
+
+                e.StopPropagation();
+
+                var percentage =
+                    1.0f - Mathf.Clamp((relativeMousePosition.x - sliderBarPosition.x) / sliderBarPosition.width,
+                        0.01f, 1.0f);
+                percentage = (percentage * percentage);
+
+                if (m_RangeList[m_SelectedIndex].Property != null)
+                {
+                    var property = m_RangeList[m_SelectedIndex].Property;
+                    property.floatValue = percentage;
+                    property.serializedObject.ApplyModifiedProperties();
+                }
+            }
+        }
+
+        void OnMouseUp(MouseUpEvent e)
+        {
+            e.StopPropagation();
+            m_SelectedIndex = -1;
+        }
+
+        Rect SliderBarPosition => new Rect(resolvedStyle.left, resolvedStyle.top, resolvedStyle.width, resolvedStyle.height);
+
+        //public void Draw(Rect sliderBarPosition)
+        void OnGenerateVisualContent(MeshGenerationContext mgc)
+        {
+            var sliderBarPosition = SliderBarPosition;
+            var localSliderBarPosition = new Rect(0, 0, sliderBarPosition.width, sliderBarPosition.height);
+
+            var painter = mgc.painter2D;
+
+            DrawRect(painter, localSliderBarPosition, kDefaultLODColor);
+            //GUIStyle.Draw(sliderBarPosition, GUIContent.none, false, false, false, false);
+
+            float startPosition = 1.0f;
+            for (int i = 0; i < m_RangeList.Count; ++i)
+            {
+                m_RangeList[i].Draw(mgc, localSliderBarPosition, kLODColors[i], startPosition, resolvedStyle.fontSize, resolvedStyle.color);
+                //if default range has not existed then last range should not be drawn.
+
+                if (enabledSelf)
+                {
+                    if (i != m_RangeList.Count - 1 || m_DefaultRange != null)
+                        m_RangeList[i].DrawCursor(sliderBarPosition);
+                }
+
+                startPosition = m_RangeList[i].EndPosition;
+            }
+
+            if (m_DefaultRange != null)
+            {
+                m_DefaultRange.Draw(mgc, localSliderBarPosition, kDefaultLODColor, startPosition, resolvedStyle.fontSize, resolvedStyle.color);
+            }
+        }
+
+        class LODSliderRange
+        {
+            public string Name { set; get; }
+            public SerializedProperty Property { set; get; }
+
+            public float EndPosition
+            {
+                get
+                {
+                    if (Property == null)
+                        return 0.0f;
+                    return Property.floatValue;
+                }
+            }
+
+            public Rect GetResizeArea(Rect sliderArea)
+            {
+
+                float pos = sliderArea.width * (1.0f - Mathf.Sqrt(EndPosition));
+                return new Rect(sliderArea.x + pos - 5.0f, sliderArea.y, 10.0f, sliderArea.height);
+            }
+            public void Draw(MeshGenerationContext mgc, Rect sliderArea, Color backgroundColor, float startPosition, float textSize, Color textColor)
+            {
+                var startPercentageString = string.Format("{0}\n{1:0}%", Name, startPosition * 100.0f);
+
+                var startX = Mathf.Round(sliderArea.width * (1.0f - Mathf.Sqrt(startPosition)));
+                var endX = Mathf.Round(sliderArea.width * (1.0f - Mathf.Sqrt(EndPosition)));
+
+                var rect = new Rect(sliderArea.x + startX, sliderArea.y, endX - startX, sliderArea.height);
+
+                //Styles.LODSliderRange.Draw(rect, GUIContent.none, false, false, false, false);
+                //Styles.LODSliderText.Draw(rect, startPercentageString, false, false, false, false);
+
+                DrawRect(mgc.painter2D, rect, backgroundColor);
+                mgc.DrawText(startPercentageString, new Vector2(rect.xMin, rect.yMin), textSize, textColor);
+            }
+
+            public void DrawCursor(Rect sliderArea)
+            {
+                EditorGUIUtility.AddCursorRect(GetResizeArea(sliderArea), MouseCursor.ResizeHorizontal);
+            }
+        }
+    }
 }

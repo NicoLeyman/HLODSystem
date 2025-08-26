@@ -15,9 +15,9 @@ namespace Unity.HLODSystem
         [SerializeField]
         protected float m_ChunkSize = 30.0f;
         [SerializeField]
-        protected float m_LODDistance = 0.3f;
+        protected float m_LODScreenRatioThreshold = 0.3f;
         [SerializeField]
-        protected float m_CullDistance = 0.01f;
+        protected float m_CullScreenRatioThreshold = 0.01f;
 
         [SerializeField]
         protected SerializableDynamicObject m_SpaceSplitterOptions = new SerializableDynamicObject();
@@ -31,12 +31,15 @@ namespace Unity.HLODSystem
         [SerializeField]
         protected List<GameObject> m_convertedPrefabObjects = new List<GameObject>();
 
+        private Type m_SpaceSplitterType;
         private Type m_SimplifierType;
         private Type m_StreamingType;
         private Type m_UserDataSerializerType;
 
-        //< unity serializer is not support serialization with System.Type
-        //< So, we should convert to string to store value.
+        // Unity serializer does not support serialization with System.Type
+        // So, we should convert to string to store value.
+        [SerializeField]
+        private string m_SpaceSplitterTypeStr;
         [SerializeField]
         protected string m_SimplifierTypeStr;
         [SerializeField]
@@ -55,16 +58,38 @@ namespace Unity.HLODSystem
             get { return m_ChunkSize; }
         }
 
-        public float LODDistance
+        public float LODScreenRatioTreshold
         {
-            get { return m_LODDistance; }
-            set { m_LODDistance = value; }
+            get { return m_LODScreenRatioThreshold; }
+            set { 
+                m_LODScreenRatioThreshold = value;
+#if UNITY_EDITOR
+                if(TryGetComponent(out HLODControllerBase controller))
+                {
+                    controller.LODScreenRatioTreshold = m_LODScreenRatioThreshold;
+                }
+#endif
+            }
         }
 
-        public float CullDistance
+        public float CullScreenRatioTreshold
         {
-            get { return m_CullDistance; }
-            set { m_CullDistance = value; }
+            get { return m_CullScreenRatioThreshold; }
+            set {
+                m_CullScreenRatioThreshold = value;
+#if UNITY_EDITOR
+                if (TryGetComponent(out HLODControllerBase controller))
+                {
+                    controller.CullScreenRatioTreshold = m_CullScreenRatioThreshold;
+                }
+#endif
+            }
+        }
+
+        public Type SpaceSplitterType
+        {
+            set { m_SpaceSplitterType = value; }
+            get { return m_SpaceSplitterType; }
         }
 
         public Type SimplifierType
@@ -85,6 +110,11 @@ namespace Unity.HLODSystem
             get { return m_UserDataSerializerType; }
         }
 
+        public SerializableDynamicObject SpaceSplitterOptions
+        {
+            get { return m_SpaceSplitterOptions; }
+        }
+
         public SerializableDynamicObject StreamingOptions
         {
             get { return m_StreamingOptions; }
@@ -95,19 +125,10 @@ namespace Unity.HLODSystem
             get { return m_SimplifierOptions; }
         }
 
-#if UNITY_EDITOR
-        public List<Object> GeneratedObjects
-        {
-            get { return m_generatedObjects; }
-        }
-
-        public List<GameObject> ConvertedPrefabObjects
-        {
-            get { return m_convertedPrefabObjects; }
-        }
-
         public virtual void OnBeforeSerialize()
         {
+            if (m_SpaceSplitterType != null)
+                m_SpaceSplitterTypeStr = m_SpaceSplitterType.AssemblyQualifiedName;
             if (m_SimplifierType != null)
                 m_SimplifierTypeStr = m_SimplifierType.AssemblyQualifiedName;
             if (m_StreamingType != null)
@@ -115,8 +136,18 @@ namespace Unity.HLODSystem
             if (m_UserDataSerializerType != null)
                 m_UserDataSerializerTypeStr = m_UserDataSerializerType.AssemblyQualifiedName;
         }
+
         public virtual void OnAfterDeserialize()
         {
+            if (string.IsNullOrEmpty(m_SpaceSplitterTypeStr))
+            {
+                m_SpaceSplitterType = null;
+            }
+            else
+            {
+                m_SpaceSplitterType = Type.GetType(m_SpaceSplitterTypeStr);
+            }
+
             if (string.IsNullOrEmpty(m_SimplifierTypeStr))
             {
                 m_SimplifierType = null;
@@ -159,7 +190,18 @@ namespace Unity.HLODSystem
             m_convertedPrefabObjects.Add(obj);
         }
 
+        public abstract Bounds GetBounds();
+
 #if UNITY_EDITOR
+        public List<Object> GeneratedObjects
+        {
+            get { return m_generatedObjects; }
+        }
+
+        public List<GameObject> ConvertedPrefabObjects
+        {
+            get { return m_convertedPrefabObjects; }
+        }
 
         public List<HLODControllerBase> GetHLODControllerBases()
         {
@@ -184,7 +226,6 @@ namespace Unity.HLODSystem
             }
             return controllerBases;
         }
-#endif
 
         public void TryGatheringGeneratedObjects()
         {

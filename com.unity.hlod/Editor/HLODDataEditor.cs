@@ -224,6 +224,9 @@ namespace Unity.HLODSystem
 
             public void SetSelectedObject(Mesh mesh, Material mat)
             {
+                if (mat == null)
+                    return;
+
                 // TODO: investigate performance (and deadlocks/out-of-memory with large meshes) issues.
                 if(mesh.triangles.Length > 64000)
                 {
