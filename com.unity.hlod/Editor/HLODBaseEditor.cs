@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.HLODSystem.SpaceManager;
 using Unity.HLODSystem.Utils;
 using UnityEditor;
@@ -20,8 +21,8 @@ namespace Unity.HLODSystem
 
             public static Color RedTextColor = new Color(1.0f, 0.15f, 0.15f);
             public static Color BlueTextColor = new Color(0.4f, 0.5f, 1.0f);
-        }  
-        
+        }
+
         private SerializedProperty m_ChunkSizeProperty;
         private SerializedProperty m_LODDistanceProperty;
         private SerializedProperty m_CullDistanceProperty;
@@ -40,7 +41,7 @@ namespace Unity.HLODSystem
 
         private Type[] m_UserDataSerializerTypes;
         private List<string> m_UserDataSerializerNames = new List<string>();
-        
+
         private ISpaceSplitter m_splitter;
 
         [InitializeOnLoadMethod]
@@ -83,9 +84,14 @@ namespace Unity.HLODSystem
             TargetHLOD = hlod;
 
             m_SpaceSplitterTypes = SpaceManager.SpaceSplitterTypes.GetTypes();
-            foreach(var t in m_SpaceSplitterTypes)
+            foreach (var t in m_SpaceSplitterTypes)
             {
                 m_SpaceSplitterNames.Add(t.Name);
+            }
+            if (TargetHLOD.SpaceSplitterType == null && m_SpaceSplitterTypes.Length > 0)
+            {
+                TargetHLOD.SpaceSplitterType = m_SpaceSplitterTypes[0];
+                SetDirtyAndApply(serializedObject, hlod);
             }
 
             m_SimplifierTypes = HLODSystem.Simplifier.SimplifierTypes.GetTypes();
@@ -93,27 +99,33 @@ namespace Unity.HLODSystem
             {
                 m_SimplifierNames.Add(t.Name);
             }
-            m_SimplifierNames = new List<string>(m_SimplifierTypes.Length);
-            for (var i = 0; i < m_SimplifierTypes.Length; ++i)
-                m_SimplifierNames.Add(m_SimplifierTypes[i].Name);
+            if (TargetHLOD.SimplifierType == null && m_SimplifierTypes.Length > 0)
+            {
+                TargetHLOD.SimplifierType = m_SimplifierTypes[0];
+                SetDirtyAndApply(serializedObject, hlod);
+            }
 
             m_StreamingTypes = HLODSystem.Streaming.StreamingBuilderTypes.GetTypes();
             foreach (var t in m_StreamingTypes)
             {
                 m_StreamingNames.Add(t.Name);
             }
-            m_StreamingNames = new List<string>(m_StreamingTypes.Length);
-            for (var i = 0; i < m_StreamingTypes.Length; ++i)
-                m_StreamingNames.Add(m_StreamingTypes[i].Name);
+            if (TargetHLOD.StreamingType == null && m_StreamingTypes.Length > 0)
+            {
+                TargetHLOD.StreamingType = m_StreamingTypes[0];
+                SetDirtyAndApply(serializedObject, hlod);
+            }
 
             m_UserDataSerializerTypes = Serializer.UserDataSerializerTypes.GetTypes();
             foreach (var t in m_UserDataSerializerTypes)
             {
                 m_UserDataSerializerNames.Add(t.Name);
             }
-            m_UserDataSerializerNames = new List<string>(m_UserDataSerializerTypes.Length);
-            for (var i = 0; i < m_UserDataSerializerTypes.Length; ++i)
-                m_UserDataSerializerNames.Add(m_UserDataSerializerTypes[i].Name);
+            if (TargetHLOD.UserDataSerializerType == null && m_UserDataSerializerTypes.Length > 0)
+            {
+                TargetHLOD.UserDataSerializerType = m_UserDataSerializerTypes[0];
+                SetDirtyAndApply(serializedObject, hlod);
+            }
 
             m_ChunkSizeProperty = serializedObject.FindProperty("m_ChunkSize");
             m_LODDistanceProperty = serializedObject.FindProperty("m_LODScreenRatioThreshold");
@@ -135,9 +147,10 @@ namespace Unity.HLODSystem
 
                 var chunkSize = new PropertyField(m_ChunkSizeProperty);
                 Common.Add(chunkSize);
-                chunkSize.RegisterValueChangeCallback((e) => { HLODUtils.GetChunkSizePropertyValue(m_ChunkSizeProperty.floatValue);});
+                chunkSize.RegisterValueChangeCallback((e) => { HLODUtils.GetChunkSizePropertyValue(m_ChunkSizeProperty.floatValue); });
 
                 TreeDepthLabel = new Label();
+                TreeDepthLabel.name = "TreeDepthLabel";
                 TreeDepthLabel.style.color = Styles.BlueTextColor;
                 TreeDepthLabel.style.flexWrap = new StyleEnum<Wrap>(Wrap.Wrap);
                 Common.Add(TreeDepthLabel);
@@ -174,7 +187,6 @@ namespace Unity.HLODSystem
                 spaceSplitterDropdown.label = SpaceSplitter.text;
                 SpaceSplitter.Add(spaceSplitterDropdown);
                 spaceSplitterDropdown.choices = m_SpaceSplitterNames;
-                spaceSplitterDropdown.value = hlod.SpaceSplitterType.Name;
                 spaceSplitterDropdown.RegisterValueChangedCallback((e) =>
                 {
                     var spaceSplitterIndex = m_SpaceSplitterNames.IndexOf(e.newValue);
@@ -182,11 +194,7 @@ namespace Unity.HLODSystem
 
                     m_splitter = SpaceSplitterTypes.CreateInstance(hlod);
 
-                    var bounds = hlod.GetBounds();
-                    int depth = m_splitter.CalculateTreeDepth(bounds, m_ChunkSizeProperty.floatValue);
-                    TreeDepthLabel.text = ($"The HLOD tree will be created with {depth} levels.");
-
-                    TreeDepthLevelWarning.style.display = depth > 5 ? DisplayStyle.Flex : DisplayStyle.None;
+                    UpdateTreeDepthLabels();
 
                     if (m_splitter != null)
                     {
@@ -203,9 +211,12 @@ namespace Unity.HLODSystem
                         SubTreeLabel.text = $"The HLOD tree will be created with {subTreeCount} sub trees.";
                     }
 
-                    SetDirtyAndApply(serializedObject, hlod);
+                    if (e.newValue != e.previousValue)
+                        SetDirtyAndApply(serializedObject, hlod);
                 });
 
+                spaceSplitterDropdown.value = hlod.SpaceSplitterType != null ? hlod.SpaceSplitterType.Name : "None";
+                UpdateTreeDepthLabels();
 
                 if (m_SpaceSplitterTypes.Length == 0)
                 {
@@ -232,7 +243,7 @@ namespace Unity.HLODSystem
                 simplifierDropdown.label = Simplifier.text;
                 Simplifier.Add(simplifierDropdown);
                 simplifierDropdown.choices = m_SimplifierNames;
-                simplifierDropdown.value = hlod.SimplifierType.Name;
+                simplifierDropdown.value = hlod.SimplifierType != null ? hlod.SimplifierType.Name : "None";
                 simplifierDropdown.RegisterValueChangedCallback((e) =>
                 {
                     var simplifierIndex = m_SimplifierNames.IndexOf(e.newValue);
@@ -276,7 +287,7 @@ namespace Unity.HLODSystem
                 streamingDropdown.label = Streaming.text;
                 Streaming.Add(streamingDropdown);
                 streamingDropdown.choices = m_StreamingNames;
-                streamingDropdown.value = hlod.StreamingType.Name;
+                streamingDropdown.value = hlod.StreamingType != null ? hlod.StreamingType.Name : "None";
                 streamingDropdown.RegisterValueChangedCallback((e) =>
                 {
                     var streamingIndex = m_StreamingNames.IndexOf(e.newValue);
@@ -303,7 +314,7 @@ namespace Unity.HLODSystem
                     MissingStreamingProvidersLabel.style.display = DisplayStyle.None;
                 }
             }
-            
+
             {
                 UserDataSerializer = new Foldout();
                 UserDataSerializer.text = "UserDataSerializer";
@@ -318,7 +329,8 @@ namespace Unity.HLODSystem
                 userDataSerializersDropdown.label = UserDataSerializer.text;
                 UserDataSerializer.Add(userDataSerializersDropdown);
                 userDataSerializersDropdown.choices = m_UserDataSerializerNames;
-                userDataSerializersDropdown.value = hlod.UserDataSerializerType.Name;
+                userDataSerializersDropdown.value = hlod.UserDataSerializerType != null ?
+                hlod.UserDataSerializerType.Name : "None";
                 userDataSerializersDropdown.RegisterValueChangedCallback((e) =>
                 {
                     var serializerIndex = m_UserDataSerializerNames.IndexOf(e.newValue);
@@ -381,7 +393,7 @@ namespace Unity.HLODSystem
 
             // We don't actually want to show the list of generated object, at this time at least.
             // We do however want to be able to tell when the generated object count changes, re-using the list-binding and callbacks from ListView is convenient here.
-            var generatedObjectView = new ListView() { name = "GeneratedObjects"};
+            var generatedObjectView = new ListView() { name = "GeneratedObjects" };
             generatedObjectView.itemsSource = hlod.GeneratedObjects;
             generatedObjectView.itemsAdded += (a) => OnHLODGeneratedObjectChanged();
             generatedObjectView.itemsRemoved += (r) => OnHLODGeneratedObjectChanged();
@@ -400,6 +412,25 @@ namespace Unity.HLODSystem
         private void OnHLODGeneratedObjectChanged()
         {
             DestroyButton.enabledSelf = TargetHLOD.GeneratedObjects.Count > 0;
+        }
+
+        private void UpdateTreeDepthLabels()
+        {
+            if (TargetHLOD.SpaceSplitterType == null)
+                return; 
+                
+            if (m_splitter == null)
+                m_splitter = SpaceSplitterTypes.CreateInstance(TargetHLOD);
+
+            if (m_splitter == null)
+                return;
+
+            var bounds = TargetHLOD.GetBounds();
+
+            int depth = m_splitter.CalculateTreeDepth(bounds, m_ChunkSizeProperty.floatValue);
+            TreeDepthLabel.text = $"The HLOD tree will be created with {depth} levels.";
+
+            TreeDepthLevelWarning.style.display = depth > 5 ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
     }

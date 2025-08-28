@@ -1,10 +1,10 @@
 using Unity.HLODSystem.Serializer;
 using Unity.HLODSystem.Streaming;
-using Unity.HLODSystem;
 using UnityEngine;
 using System.Collections.Generic;
 using System;
 using Object = UnityEngine.Object;
+using Unity.HLODSystem.SpaceManager;
 
 namespace Unity.HLODSystem
 {
@@ -31,7 +31,7 @@ namespace Unity.HLODSystem
         [SerializeField]
         protected List<GameObject> m_convertedPrefabObjects = new List<GameObject>();
 
-        private Type m_SpaceSplitterType;
+        private Type m_SpaceSplitterType = typeof(QuadTreeSpaceManager);
         private Type m_SimplifierType;
         private Type m_StreamingType;
         private Type m_UserDataSerializerType;

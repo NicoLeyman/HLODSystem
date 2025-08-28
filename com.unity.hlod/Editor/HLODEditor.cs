@@ -60,6 +60,9 @@ namespace Unity.HLODSystem
             for (var i = 0; i < m_BatcherTypes.Length; ++i)
                 m_BatcherNames.Add(m_BatcherTypes[i].Name);
 
+            if (hlod.BatcherType == null && m_BatcherTypes.Length > 0)
+                hlod.BatcherType = m_BatcherTypes[0];
+
             m_MinObjectSizeProperty = serializedObject.FindProperty("m_MinObjectSize");
 
             hlodEditor.Common.Add(new PropertyField(m_MinObjectSizeProperty));
@@ -79,7 +82,7 @@ namespace Unity.HLODSystem
                 batcherDropdown.label = BatcherFoldout.text;
                 BatcherFoldout.Add(batcherDropdown);
                 batcherDropdown.choices = m_BatcherNames;
-                batcherDropdown.value = hlod.BatcherType.Name;
+                batcherDropdown.value = hlod.BatcherType != null ? hlod.BatcherType.Name : "None";
                 batcherDropdown.RegisterValueChangedCallback((e) =>
                 {
                     AddBatcherOptions(hlod, e.newValue);
@@ -109,6 +112,9 @@ namespace Unity.HLODSystem
             }
 
             var batcherIndex = m_BatcherNames.IndexOf(batcherName);
+            if (batcherIndex == -1)
+                return;
+
             hlod.BatcherType = m_BatcherTypes[batcherIndex];
 
             var info = m_BatcherTypes[batcherIndex].GetMethod("CreateGUI");

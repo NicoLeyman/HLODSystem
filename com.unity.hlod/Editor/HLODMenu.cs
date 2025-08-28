@@ -13,7 +13,8 @@ public class HLODMenu
 
             foreach(var hlod in hlods)
             {
-                CoroutineRunner.RunCoroutine(HLODCreator.Create(hlod));
+                if(hlod.enabled)
+                    CoroutineRunner.RunCoroutine(HLODCreator.Create(hlod));
             }
         }
 
@@ -22,7 +23,8 @@ public class HLODMenu
 
             foreach(var hlod in hlods)
             {
-                CoroutineRunner.RunCoroutine(TerrainHLODCreator.Create(hlod));
+                if(hlod.enabled)
+                    CoroutineRunner.RunCoroutine(TerrainHLODCreator.Create(hlod));
             }
         }
     }
