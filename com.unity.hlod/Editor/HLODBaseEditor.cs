@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.HLODSystem.SpaceManager;
 using Unity.HLODSystem.Utils;
 using UnityEditor;
@@ -12,7 +11,7 @@ namespace Unity.HLODSystem
 {
     public class HLODBaseEditor : VisualElement
     {
-        public static class Styles
+        protected static class Styles
         {
             public static GUIContent GenerateButtonEnable = new GUIContent("Generate", "Generate HLOD mesh.");
             public static GUIContent RegenerateButtonEnable = new GUIContent("Regenerate", "Regenerate HLOD mesh.");
@@ -64,10 +63,14 @@ namespace Unity.HLODSystem
 
         public VisualElement Properties;
         public Foldout Common;
-        public Foldout SpaceSplitter;
-        public Foldout Simplifier;
-        public Foldout Streaming;
-        public Foldout UserDataSerializer;
+        protected Foldout SpaceSplitter;
+        VisualElement SpaceSplitterOptions;
+        protected Foldout Simplifier;
+        VisualElement SimplifierOptions;
+        protected Foldout Streaming;
+        VisualElement StreamingOptions;
+        protected Foldout UserDataSerializer;
+        VisualElement UserDataSerializerOptions;
 
         Button DestroyButton;
 
@@ -212,7 +215,10 @@ namespace Unity.HLODSystem
                     }
 
                     if (e.newValue != e.previousValue)
+                    {
+                        hlod.SpaceSplitterType = AddModuleUI(hlod, spaceSplitterDropdown.value, m_SpaceSplitterNames, m_SpaceSplitterTypes, SpaceSplitter, ref SpaceSplitterOptions);
                         SetDirtyAndApply(serializedObject, hlod);
+                    }
                 });
 
                 spaceSplitterDropdown.value = hlod.SpaceSplitterType != null ? hlod.SpaceSplitterType.Name : "None";
@@ -221,11 +227,12 @@ namespace Unity.HLODSystem
                 if (m_SpaceSplitterTypes.Length == 0)
                 {
                     spaceSplitterDropdown.enabledSelf = false;
-                    MissingSpaceSplittersLabel.style.display = DisplayStyle.Flex;
+                    MissingSpaceSplittersLabel.visible = true;
                 }
                 else
                 {
-                    MissingSpaceSplittersLabel.style.display = DisplayStyle.None;
+                    AddModuleUI(hlod, spaceSplitterDropdown.value, m_SpaceSplitterNames, m_SpaceSplitterTypes, SpaceSplitter, ref SpaceSplitterOptions);
+                    MissingSpaceSplittersLabel.visible = false;
                 }
             }
 
@@ -246,30 +253,19 @@ namespace Unity.HLODSystem
                 simplifierDropdown.value = hlod.SimplifierType != null ? hlod.SimplifierType.Name : "None";
                 simplifierDropdown.RegisterValueChangedCallback((e) =>
                 {
-                    var simplifierIndex = m_SimplifierNames.IndexOf(e.newValue);
-                    hlod.SimplifierType = m_SimplifierTypes[simplifierIndex];
-
-                    var info = hlod.SpaceSplitterType.GetMethod("CreateGUI");
-                    if (info != null)
-                    {
-                        if (info.IsStatic == true)
-                        {
-                            var settingsUI = info.Invoke(null, new object[] { hlod.SimplifierOptions }) as VisualElement;
-                            settingsUI.style.marginLeft = 5;
-                            Simplifier.Add(settingsUI);
-                        }
-                    }
+                    hlod.SimplifierType = AddModuleUI(hlod, simplifierDropdown.value, m_SimplifierNames, m_SimplifierTypes, Simplifier, ref SimplifierOptions );
                     SetDirtyAndApply(serializedObject, hlod);
                 });
 
                 if (m_SimplifierTypes.Length == 0)
                 {
                     simplifierDropdown.enabledSelf = false;
-                    MissingSimplifiersLabel.style.display = DisplayStyle.Flex;
+                    MissingSimplifiersLabel.visible = true;
                 }
                 else
                 {
-                    MissingSimplifiersLabel.style.display = DisplayStyle.None;
+                    AddModuleUI(hlod, simplifierDropdown.value, m_SimplifierNames, m_SimplifierTypes, Simplifier, ref SimplifierOptions );
+                    MissingSimplifiersLabel.visible = false;
                 }
             }
 
@@ -290,28 +286,19 @@ namespace Unity.HLODSystem
                 streamingDropdown.value = hlod.StreamingType != null ? hlod.StreamingType.Name : "None";
                 streamingDropdown.RegisterValueChangedCallback((e) =>
                 {
-                    var streamingIndex = m_StreamingNames.IndexOf(e.newValue);
-                    hlod.StreamingType = m_StreamingTypes[streamingIndex];
-
-                    var info = m_StreamingTypes[streamingIndex].GetMethod("CreateGUI");
-                    if (info != null)
-                    {
-                        if (info.IsStatic == true)
-                        {
-                            Streaming.Add(info.Invoke(null, new object[] { hlod.StreamingOptions }) as VisualElement);
-                        }
-                    }
+                    hlod.StreamingType = AddModuleUI(hlod, streamingDropdown.value, m_StreamingNames, m_StreamingTypes, Streaming, ref StreamingOptions );
                     SetDirtyAndApply(serializedObject, hlod);
                 });
 
                 if (m_StreamingTypes.Length == 0)
                 {
                     streamingDropdown.enabledSelf = false;
-                    MissingStreamingProvidersLabel.style.display = DisplayStyle.Flex;
+                    MissingStreamingProvidersLabel.visible = true;
                 }
                 else
                 {
-                    MissingStreamingProvidersLabel.style.display = DisplayStyle.None;
+                    AddModuleUI(hlod, streamingDropdown.value, m_StreamingNames, m_StreamingTypes, Streaming, ref StreamingOptions );
+                    MissingStreamingProvidersLabel.visible = false;
                 }
             }
 
@@ -333,19 +320,19 @@ namespace Unity.HLODSystem
                 hlod.UserDataSerializerType.Name : "None";
                 userDataSerializersDropdown.RegisterValueChangedCallback((e) =>
                 {
-                    var serializerIndex = m_UserDataSerializerNames.IndexOf(e.newValue);
-                    hlod.UserDataSerializerType = m_UserDataSerializerTypes[serializerIndex];
+                    hlod.UserDataSerializerType = AddModuleUI(hlod, userDataSerializersDropdown.value, m_UserDataSerializerNames, m_UserDataSerializerTypes, UserDataSerializer, ref UserDataSerializerOptions );
                     SetDirtyAndApply(serializedObject, hlod);
                 });
 
                 if (m_UserDataSerializerTypes.Length == 0)
                 {
                     userDataSerializersDropdown.enabledSelf = false;
-                    MissingUserDataSerializersLabel.style.display = DisplayStyle.Flex;
+                    MissingUserDataSerializersLabel.visible = true;
                 }
                 else
                 {
-                    MissingUserDataSerializersLabel.style.display = DisplayStyle.None;
+                    AddModuleUI(hlod, userDataSerializersDropdown.value, m_UserDataSerializerNames, m_UserDataSerializerTypes, UserDataSerializer, ref UserDataSerializerOptions );
+                    MissingUserDataSerializersLabel.visible = false;
                 }
             }
 
@@ -402,11 +389,6 @@ namespace Unity.HLODSystem
             generatedObjectView.visible = false;
 
             OnHLODGeneratedObjectChanged();
-
-            //if (EditorGUI.EndChangeCheck())
-            //{
-            //    EditorUtility.SetDirty(hlod);
-            //}
         }
 
         private void OnHLODGeneratedObjectChanged()
@@ -417,8 +399,8 @@ namespace Unity.HLODSystem
         private void UpdateTreeDepthLabels()
         {
             if (TargetHLOD.SpaceSplitterType == null)
-                return; 
-                
+                return;
+
             if (m_splitter == null)
                 m_splitter = SpaceSplitterTypes.CreateInstance(TargetHLOD);
 
@@ -430,9 +412,34 @@ namespace Unity.HLODSystem
             int depth = m_splitter.CalculateTreeDepth(bounds, m_ChunkSizeProperty.floatValue);
             TreeDepthLabel.text = $"The HLOD tree will be created with {depth} levels.";
 
-            TreeDepthLevelWarning.style.display = depth > 5 ? DisplayStyle.Flex : DisplayStyle.None;
+            TreeDepthLevelWarning.visible = depth > 5;
         }
 
-    }
+        public Type AddModuleUI(HLODBase hlod, string moduleName, List<string> moduleNames, Type[] moduleTypes, Foldout moduleFoldout, ref VisualElement optionsElement)
+        {
+            if (optionsElement != null)
+            {
+                optionsElement.Remove(optionsElement);
+            }
 
+            var moduleIndex = moduleNames.IndexOf(moduleName);
+            if (moduleIndex == -1)
+                return null;
+
+            var moduleType = moduleTypes[moduleIndex];
+
+            var info = moduleTypes[moduleIndex].GetMethod("CreateGUI");
+            if (info != null)
+            {
+                if (info.IsStatic == true)
+                {
+                    optionsElement = info.Invoke(null, new object[] { hlod }) as VisualElement;
+                    optionsElement.style.marginLeft = 5;
+                    moduleFoldout.Add(optionsElement);
+                }
+            }
+
+            return moduleType;
+        }
+    }
 }

@@ -190,6 +190,7 @@ namespace Unity.HLODSystem
                 OutputDropdown.RegisterValueChangedCallback((e) =>
                 {
                     TextureInfo.OutputName = e.newValue;
+                    foldout.text = e.newValue;
                 });
                 foldout.Add(OutputDropdown);
                 OutputDropdown.style.height = lineHeight;

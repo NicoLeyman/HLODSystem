@@ -1,6 +1,6 @@
 {
     "name": "HLODEditor",
-    "rootNamespace": "",
+    "rootNamespace": "Unity.HLODSystem",
     "references": [
         "HLOD",
         "UnityMeshSimplifier",

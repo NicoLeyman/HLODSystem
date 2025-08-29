@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Unity.HLODSystem.SpaceManager
 {
@@ -350,33 +351,59 @@ namespace Unity.HLODSystem.SpaceManager
 
             return dynamicObject;
         }
-
-        public static void OnGUI(SerializableDynamicObject spaceSplitterOptions)
+        public static void InitializeOptions(dynamic options)
         {
-            dynamic options = spaceSplitterOptions;
-
-            //initialize values
-            if (options.LooseSize == null)
+             if (options.LooseSize == null)
                 options.LooseSize = 5.0f;
-            if (options.UseSubHLODTree == null)
-                options.UseSubHLODTree = false;
-            if (options.SubHLODTreeSize == null)
-                options.SubHLODTreeSize = 100.0f;
-
-            //Draw UI
-            options.LooseSize = EditorGUILayout.FloatField("Loose size", options.LooseSize);
-
-            options.UseSubHLODTree = EditorGUILayout.ToggleLeft("Use sub HLOD tree", options.UseSubHLODTree);
-            if (options.UseSubHLODTree == true)
-            {
-                EditorGUI.indentLevel += 1;
-                options.SubHLODTreeSize = EditorGUILayout.FloatField("Sub tree size", options.SubHLODTreeSize);
-                EditorGUI.indentLevel -= 1;
-            }
-
+            if (options.UseHLODSubTree == null)
+                options.UseHLODSubTree = false;
+            if (options.HLODSubTreeSize == null)
+                options.HLODSubTreeSize = 100.0f;
         }
 
-        
-    }
 
+        public static VisualElement CreateGUI(HLODBase hlod)
+        {
+            dynamic options = hlod.SpaceSplitterOptions;
+
+            InitializeOptions(options);         
+
+            var gui = new VisualElement() { name = nameof(QuadTreeSpaceSplitter) };
+
+            var looseSize = new FloatField("Loose size");
+            looseSize.value = (float)options.LooseSize;
+            looseSize.RegisterValueChangedCallback((e) =>
+            {
+                options.LooseSize = e.newValue;
+            });
+            gui.Add(looseSize);
+
+            var hlodSubtree = new VisualElement() { name = "hlodSubtree" };
+            hlodSubtree.style.flexDirection = FlexDirection.Row;
+            gui.Add(hlodSubtree);
+
+            var hlodSubTreeSize = new FloatField("Sub tree size");
+
+            var useHlodSubTree = new Toggle("Use HLOD sub tree");
+            useHlodSubTree.value = (bool)options.UseHLODSubTree;
+            hlodSubTreeSize.enabledSelf = useHlodSubTree.value;
+            useHlodSubTree.RegisterValueChangedCallback((e) =>
+            {
+                options.UseHLODSubTree = e.newValue;
+                hlodSubTreeSize.enabledSelf = e.newValue;
+            });
+            hlodSubtree.Add(useHlodSubTree);
+
+            hlodSubTreeSize.value = (float)options.HLODSubTreeSize;
+            hlodSubTreeSize.RegisterValueChangedCallback((e) =>
+            {
+                options.HLODSubTreeSize = e.newValue;
+            });
+            hlodSubTreeSize.style.marginLeft = 30;
+            hlodSubtree.Add(hlodSubTreeSize);
+
+            return gui;
+
+        }      
+    }
 }

@@ -85,7 +85,7 @@ namespace Unity.HLODSystem
                 batcherDropdown.value = hlod.BatcherType != null ? hlod.BatcherType.Name : "None";
                 batcherDropdown.RegisterValueChangedCallback((e) =>
                 {
-                    AddBatcherOptions(hlod, e.newValue);
+                    hlod.BatcherType = hlodEditor.AddModuleUI(hlod, batcherDropdown.value, m_BatcherNames, m_BatcherTypes, BatcherFoldout, ref BatcherOptions );
                     hlodEditor.SetDirtyAndApply(serializedObject, hlod);
                 });
 
@@ -97,36 +97,11 @@ namespace Unity.HLODSystem
                 else
                 {
                     MissingBatchersLabel.visible = false;
-                    AddBatcherOptions(hlod, batcherDropdown.value);
+                    hlodEditor.AddModuleUI(hlod, batcherDropdown.value, m_BatcherNames, m_BatcherTypes, BatcherFoldout, ref BatcherOptions );
                 }
             }
 
             return hlodEditor;
-        }
-
-        void AddBatcherOptions(HLOD hlod, string batcherName)
-        {
-            if(BatcherOptions != null)
-            {
-                BatcherFoldout.Remove(BatcherOptions);
-            }
-
-            var batcherIndex = m_BatcherNames.IndexOf(batcherName);
-            if (batcherIndex == -1)
-                return;
-
-            hlod.BatcherType = m_BatcherTypes[batcherIndex];
-
-            var info = m_BatcherTypes[batcherIndex].GetMethod("CreateGUI");
-            if (info != null)
-            {                
-                if (info.IsStatic == true)
-                {
-                    BatcherOptions = info.Invoke(null, new object[] { hlod }) as VisualElement;
-                    BatcherOptions.style.marginLeft = 5;
-                    BatcherFoldout.Add(BatcherOptions);
-                }
-            }
         }
     }
 
