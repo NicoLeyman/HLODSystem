@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Unity.HLODSystem.Utils;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
 namespace Unity.HLODSystem.Simplifier
@@ -60,30 +61,40 @@ namespace Unity.HLODSystem.Simplifier
             
         }
 
-        protected abstract IEnumerator GetSimplifiedMesh(Utils.WorkingMesh origin, float quality, Action<Utils.WorkingMesh> resultCallback);
-
-        protected static void OnGUIBase(SerializableDynamicObject simplifierOptions)
+        public static void InitializeOptions(dynamic options)
         {
-            EditorGUI.indentLevel += 1;
-
-            dynamic options = simplifierOptions;
-
             if (options.SimplifyPolygonRatio == null)
                 options.SimplifyPolygonRatio = 0.8f;
             if (options.SimplifyMinPolygonCount == null)
                 options.SimplifyMinPolygonCount = 10;
             if (options.SimplifyMaxPolygonCount == null)
                 options.SimplifyMaxPolygonCount = 500;
-            
+        }
 
-            options.SimplifyPolygonRatio = EditorGUILayout.Slider("Polygon Ratio", options.SimplifyPolygonRatio, 0.0f, 1.0f);
-            EditorGUILayout.LabelField("Triangle Range");
-            EditorGUI.indentLevel += 1;
-            options.SimplifyMinPolygonCount = EditorGUILayout.IntSlider("Min", options.SimplifyMinPolygonCount, 10, 100);
-            options.SimplifyMaxPolygonCount = EditorGUILayout.IntSlider("Max", options.SimplifyMaxPolygonCount, 10, 5000);
-            EditorGUI.indentLevel -= 1;
+        protected abstract IEnumerator GetSimplifiedMesh(Utils.WorkingMesh origin, float quality, Action<Utils.WorkingMesh> resultCallback);
 
-            EditorGUI.indentLevel -= 1;
+        protected static VisualElement CreateGUIBase(HLODBase hlod)
+        {
+            dynamic options = hlod.SimplifierOptions;
+
+            InitializeOptions(options);
+
+            var gui = new VisualElement() { name = nameof(SimplifierBase) };
+
+            var polygonRatio = new Slider("Polygon Ratio", 0.0f, 1.0f);
+            polygonRatio.value = options.SimplifyPolygonRatio;
+            polygonRatio.RegisterValueChangedCallback((e) => options.polygonRatio = e.newValue);
+            gui.Add(polygonRatio);
+
+            var triangleRange = new MinMaxSlider("Triangle Range", options.SimplifyMinPolygonCount, options.SimplifyMaxPolygonCount, 100, 5000);
+            triangleRange.RegisterValueChangedCallback((e) =>
+            {
+                options.SimplifyMinPolygonCount = e.newValue.x;
+                options.SimplifyMaxPolygonCount = e.newValue.y;
+            });
+            gui.Add(triangleRange);
+
+            return gui;
         }
         
     }

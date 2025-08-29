@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Unity.HLODSystem
 {
     /// <summary>
-    /// A batcher that preserves materials when combining meshes (does not reduce draw calls)
+    /// A batcher that preserves materials when combining meshes (does not reduce draw calls as effectively). It functions similarly to static batching.
     /// </summary>
     class MaterialPreservingBatcher : IBatcher
     {
@@ -95,11 +95,6 @@ namespace Unity.HLODSystem
                     combinedObjects.Add(combinedObject);
                 }
             }
-        }
-
-        static void OnGUI(HLOD hlod, bool isFirst)
-        {
-
         }
 
     }

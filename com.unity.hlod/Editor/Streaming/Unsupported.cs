@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.HLODSystem.Streaming
 {
-    class Unsupported : IStreamingBuilder
+    public class Unsupported : IStreamingBuilder
     {
         static class Styles
         {
@@ -365,7 +365,6 @@ namespace Unity.HLODSystem.Streaming
             }
         }
 
-        static bool showFormat = true;
         public static VisualElement CreateGUI(HLODBase hlod)
         {
             dynamic options = hlod.StreamingOptions;

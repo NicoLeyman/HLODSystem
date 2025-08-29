@@ -227,12 +227,12 @@ namespace Unity.HLODSystem
                 if (m_SpaceSplitterTypes.Length == 0)
                 {
                     spaceSplitterDropdown.enabledSelf = false;
-                    MissingSpaceSplittersLabel.visible = true;
+                    MissingSpaceSplittersLabel.style.display = DisplayStyle.Flex;
                 }
                 else
                 {
                     AddModuleUI(hlod, spaceSplitterDropdown.value, m_SpaceSplitterNames, m_SpaceSplitterTypes, SpaceSplitter, ref SpaceSplitterOptions);
-                    MissingSpaceSplittersLabel.visible = false;
+                    MissingSpaceSplittersLabel.style.display = DisplayStyle.None;
                 }
             }
 
@@ -260,12 +260,12 @@ namespace Unity.HLODSystem
                 if (m_SimplifierTypes.Length == 0)
                 {
                     simplifierDropdown.enabledSelf = false;
-                    MissingSimplifiersLabel.visible = true;
+                    MissingSimplifiersLabel.style.display = DisplayStyle.Flex;
                 }
                 else
                 {
                     AddModuleUI(hlod, simplifierDropdown.value, m_SimplifierNames, m_SimplifierTypes, Simplifier, ref SimplifierOptions );
-                    MissingSimplifiersLabel.visible = false;
+                    MissingSimplifiersLabel.style.display = DisplayStyle.None;
                 }
             }
 
@@ -293,12 +293,12 @@ namespace Unity.HLODSystem
                 if (m_StreamingTypes.Length == 0)
                 {
                     streamingDropdown.enabledSelf = false;
-                    MissingStreamingProvidersLabel.visible = true;
+                    MissingStreamingProvidersLabel.style.display = DisplayStyle.Flex;
                 }
                 else
                 {
                     AddModuleUI(hlod, streamingDropdown.value, m_StreamingNames, m_StreamingTypes, Streaming, ref StreamingOptions );
-                    MissingStreamingProvidersLabel.visible = false;
+                    MissingStreamingProvidersLabel.style.display = DisplayStyle.None;
                 }
             }
 
@@ -327,12 +327,12 @@ namespace Unity.HLODSystem
                 if (m_UserDataSerializerTypes.Length == 0)
                 {
                     userDataSerializersDropdown.enabledSelf = false;
-                    MissingUserDataSerializersLabel.visible = true;
+                    MissingUserDataSerializersLabel.style.display = DisplayStyle.Flex;
                 }
                 else
                 {
                     AddModuleUI(hlod, userDataSerializersDropdown.value, m_UserDataSerializerNames, m_UserDataSerializerTypes, UserDataSerializer, ref UserDataSerializerOptions );
-                    MissingUserDataSerializersLabel.visible = false;
+                    MissingUserDataSerializersLabel.style.display = DisplayStyle.None;
                 }
             }
 
@@ -412,14 +412,14 @@ namespace Unity.HLODSystem
             int depth = m_splitter.CalculateTreeDepth(bounds, m_ChunkSizeProperty.floatValue);
             TreeDepthLabel.text = $"The HLOD tree will be created with {depth} levels.";
 
-            TreeDepthLevelWarning.visible = depth > 5;
+            TreeDepthLevelWarning.style.display = depth > 5 ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         public Type AddModuleUI(HLODBase hlod, string moduleName, List<string> moduleNames, Type[] moduleTypes, Foldout moduleFoldout, ref VisualElement optionsElement)
         {
             if (optionsElement != null)
             {
-                optionsElement.Remove(optionsElement);
+                moduleFoldout.Remove(optionsElement);
             }
 
             var moduleIndex = moduleNames.IndexOf(moduleName);

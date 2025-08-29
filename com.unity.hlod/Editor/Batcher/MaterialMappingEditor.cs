@@ -208,10 +208,6 @@ namespace Unity.HLODSystem
                 foldout.Add(DefaultColorDropdown);
                 DefaultColorDropdown.style.height = lineHeight;
                 DefaultColorDropdown.style.width = new Length(25.0f, LengthUnit.Percent);
-
-                //var deleteButton = new Button();
-                //deleteButton.clicked += () => SlotListView.itemsSource.Remove(TextureInfo);
-                //Add(deleteButton);
             }
 
             public void Bind(ListView slotListView, TextureInfo slot)

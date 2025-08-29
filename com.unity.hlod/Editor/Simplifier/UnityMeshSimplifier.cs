@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.HLODSystem.Utils;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Unity.HLODSystem.Simplifier
 {
@@ -73,9 +74,9 @@ namespace Unity.HLODSystem.Simplifier
 
         
 
-        public static void OnGUI(SerializableDynamicObject simplifierOptions)
+        public static VisualElement CreateGUI(HLODBase hlod)
         {
-            OnGUIBase(simplifierOptions);
+            return SimplifierBase.CreateGUIBase(hlod);
         }
     }
 }

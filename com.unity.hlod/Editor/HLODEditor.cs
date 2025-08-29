@@ -92,11 +92,11 @@ namespace Unity.HLODSystem
                 if (m_BatcherTypes.Length == 0)
                 {
                     batcherDropdown.enabledSelf = false;
-                    MissingBatchersLabel.visible = true;
+                    MissingBatchersLabel.style.display = DisplayStyle.Flex;
                 }
                 else
                 {
-                    MissingBatchersLabel.visible = false;
+                    MissingBatchersLabel.style.display = DisplayStyle.None;
                     hlodEditor.AddModuleUI(hlod, batcherDropdown.value, m_BatcherNames, m_BatcherTypes, BatcherFoldout, ref BatcherOptions );
                 }
             }

@@ -8,6 +8,7 @@ using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
 namespace Unity.HLODSystem.Streaming
@@ -16,7 +17,7 @@ namespace Unity.HLODSystem.Streaming
     {
         static class Styles
         {
-            public static TextureFormat[] SupportTextureFormats = new[]
+            public static TextureFormat[] SupportedTextureFormats = new[]
             {
                 TextureFormat.RGBA32,
                 TextureFormat.RGB24,
@@ -43,12 +44,12 @@ namespace Unity.HLODSystem.Streaming
 
             static Styles()
             {
-                SupportTextureFormatStrings = new string[SupportTextureFormats.Length];
+                SupportTextureFormatStrings = new string[SupportedTextureFormats.Length];
                 SupportTextureFormatIndex = new Dictionary<TextureFormat, int>();
-                for (int i = 0; i < SupportTextureFormats.Length; ++i)
+                for (int i = 0; i < SupportedTextureFormats.Length; ++i)
                 {
-                    SupportTextureFormatStrings[i] = SupportTextureFormats[i].ToString();
-                    SupportTextureFormatIndex[SupportTextureFormats[i]] = i;
+                    SupportTextureFormatStrings[i] = SupportedTextureFormats[i].ToString();
+                    SupportTextureFormatIndex[SupportedTextureFormats[i]] = i;
                 }
             }
         }
@@ -418,15 +419,9 @@ namespace Unity.HLODSystem.Streaming
 
             return root;
         }
-     
-        
-        static bool showFormat = true;
-        public static void OnGUI(SerializableDynamicObject streamingOptions)
+
+        static void InitializeOptions(dynamic options)
         {
-            dynamic options = streamingOptions;
-
-            #region Setup default values
-
             if (options.OutputDirectory == null)
             {
                 string path = Application.dataPath;
@@ -466,56 +461,22 @@ namespace Unity.HLODSystem.Streaming
             {
                 options.tvOSCompression = TextureFormat.ASTC_4x4;
             }
-
-            #endregion
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel("OutputDirectory");
-            if (GUILayout.Button(options.OutputDirectory))
-            {
-                string selectPath = EditorUtility.OpenFolderPanel("Select output folder", "Assets", "");
-
-                if (selectPath.StartsWith(Application.dataPath))
-                {
-                    selectPath = "Assets" + selectPath.Substring(Application.dataPath.Length);
-                    selectPath = selectPath.Replace('\\', '/');
-                    if (selectPath.EndsWith("/") == false)
-                        selectPath += "/";
-                    options.OutputDirectory = selectPath;
-                }
-                else
-                {
-                    EditorUtility.DisplayDialog("Error", $"Select directory under {Application.dataPath}", "OK");
-                }
-            }
-
-            EditorGUILayout.EndHorizontal();
-
-            options.AddressablesGroupName = EditorGUILayout.TextField("Addressables Group", options.AddressablesGroupName);
-            
-
-            // It stores return value from foldout and uses it as a condition.
-            if (showFormat = EditorGUILayout.Foldout(showFormat, "Compress Format"))
-            {
-                EditorGUI.indentLevel += 1;
-                options.PCCompression = PopupFormat("PC & Console", (TextureFormat) options.PCCompression);
-                options.WebGLCompression = PopupFormat("WebGL", (TextureFormat) options.WebGLCompression);
-                options.AndroidCompression = PopupFormat("Android", (TextureFormat) options.AndroidCompression);
-                options.iOSCompression = PopupFormat("iOS", (TextureFormat) options.iOSCompression);
-                options.tvOSCompression = PopupFormat("tvOS", (TextureFormat) options.tvOSCompression);
-                EditorGUI.indentLevel -= 1;
-            }
         }
-        
-        private static TextureFormat PopupFormat(string label, TextureFormat format)
+
+        public static VisualElement CreateGUI(HLODBase hlod)
         {
-            int selectIndex = 0;
-            //no matter the format exists or not.
-            Styles.SupportTextureFormatIndex.TryGetValue(format, out selectIndex);
-            selectIndex = EditorGUILayout.Popup(label, selectIndex, Styles.SupportTextureFormatStrings);
-            if (selectIndex < 0)
-                selectIndex = 0;
-            return Styles.SupportTextureFormats[selectIndex];
+            dynamic options = hlod.StreamingOptions;
+            InitializeOptions(options);
+
+            var gui = Streaming.Unsupported.CreateGUI(hlod);
+            gui.name = nameof(AddressableStreaming);
+
+            var groupName = new TextField("Addressables Group");
+            groupName.value = (string)options.AddressablesGroupName;
+            groupName.RegisterValueChangedCallback((e) => { options.AddressablesGroupName = e.newValue; });
+            gui.Add(groupName);
+
+            return gui;
         }
 
         private void AddAddress(AddressableAssetSettings settings, AddressableAssetGroup group, Object obj)

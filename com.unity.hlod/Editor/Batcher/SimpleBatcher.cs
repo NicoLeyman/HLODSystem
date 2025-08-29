@@ -520,7 +520,6 @@ namespace Unity.HLODSystem
             }
         }
         
-        private static TextureInfo addingTextureInfo = new TextureInfo();
         public static VisualElement CreateGUI(HLOD hlod)
         {
             var root = new VisualElement();
@@ -606,12 +605,12 @@ namespace Unity.HLODSystem
 
                     if (mapping == null)
                     {
-                        mappingLabel.visible = true;
+                        mappingLabel.style.display = DisplayStyle.Flex;;
                     }
                     else
                     {
-                        mappingLabel.visible = false;
                         materialMappingElement.Bind(hlod, mapping);
+                        mappingLabel.style.display = DisplayStyle.None;
                     }
                 });
                 root.Add(materialMappingAssetElement);
@@ -629,8 +628,6 @@ namespace Unity.HLODSystem
                     resolvedMapping = HLODEditorSettings.Instance.DefaultMaterialMapping;
                 }
                 materialMappingElement.Bind(hlod, resolvedMapping);
-
-                //materialMapping.DrawGUI(hlod, ref textureSlotFoldout);
             }
 
             return root;
