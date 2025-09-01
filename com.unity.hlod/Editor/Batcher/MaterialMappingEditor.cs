@@ -181,6 +181,7 @@ namespace Unity.HLODSystem
                     };
                     InputColorList.showAddRemoveFooter = true;
                     InputColorList.style.width = new Length(25.0f, LengthUnit.Percent);
+                    InputColorList.makeNoneElement = () => { return null; };
                 }
 
                 var lineHeight = 22;

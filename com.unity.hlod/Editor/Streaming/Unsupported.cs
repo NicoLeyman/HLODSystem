@@ -379,6 +379,7 @@ namespace Unity.HLODSystem.Streaming
 
             var outputDirectoryLabel = new Label("Output directory");
             outputDirectory.Add(outputDirectoryLabel);
+            outputDirectoryLabel.style.minWidth = 135;
 
             var browseButton = new Button();
             browseButton.text = (string)options.OutputDirectory;
