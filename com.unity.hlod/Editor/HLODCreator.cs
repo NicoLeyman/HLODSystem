@@ -188,29 +188,46 @@ namespace Unity.HLODSystem
                 hlod.ConvertedPrefabObjects.Clear();
                 hlod.GeneratedObjects.Clear();
 
-                Bounds bounds = hlod.GetBounds();
-
+                Bounds bounds;
                 List<GameObject> hlodTargets = null;
 
                 if (hlod.OnlyIncludeHierarchy)
                 {
                     hlodTargets = ObjectUtils.HLODTargets(hlod.gameObject);
+                    bounds = hlod.GetBounds();
                 }
                 else
                 {
                     hlodTargets = new List<GameObject>();
-                    
+
                     var sceneRoots = SceneManager.GetActiveScene().GetRootGameObjects();
-                    for(var s = 0; s < sceneRoots.Count(); ++s)
+                    for (var s = 0; s < sceneRoots.Count(); ++s)
                     {
                         var sceneRoot = sceneRoots[s];
 
-                        hlodTargets.AddRange(ObjectUtils.HLODTargets(sceneRoot));
+                        // Skip other enabled HLOD hierarchies.
+                        var sceneRootHLOD = sceneRoot.GetComponent<HLODBase>();
+                        if (sceneRootHLOD != null && sceneRootHLOD != hlod)
+                        {
+                            if (sceneRootHLOD.enabled)
+                            {
+                                continue;
+                            }
+
+                            // We're going to be including this deactivated HLOD's objects so we can/should it's data.
+                            // TODO: Consider making this optional, there might be some use case where its desired to preserve this data. An HLOD of HLODs so to speak. (shouldn't that just be another level though?)
+                            // E.g. one hierarchy based HLOD for different regions that are manually controlled, while there's an overarching one capturing the entire scene used in different circumstances.
+                            HLODUtils.DestroyHLOD(sceneRootHLOD);
+                        }
+
+                        hlodTargets.AddRange(ObjectUtils.HLODTargets(sceneRoot, true));
                     }
+
+                    bounds = BoundsUtils.GetBounds(hlodTargets, hlod.transform);
                 }
 
-                ISpaceSplitter spliter = SpaceSplitterTypes.CreateInstance(hlod);
-                if (spliter == null)
+                ISpaceSplitter splitter = SpaceSplitterTypes.CreateInstance(hlod);
+                if (splitter == null)
                 {
                     EditorUtility.DisplayDialog("SpaceSplitter not found",
                         "There is no SpaceSplitter. Please set the SpaceSplitter.",
@@ -218,7 +235,7 @@ namespace Unity.HLODSystem
                     yield break;
                     
                 }
-                List<SpaceNode> rootNodeList = spliter.CreateSpaceTree(bounds, hlod.ChunkSize, hlod.transform, hlodTargets, progress =>
+                List<SpaceNode> rootNodeList = splitter.CreateSpaceTree(bounds, hlod.ChunkSize, hlod.transform, hlodTargets, progress =>
                 {
                     EditorUtility.DisplayProgressBar("Bake HLOD", "Splitting space", progress * 0.25f);
                 });

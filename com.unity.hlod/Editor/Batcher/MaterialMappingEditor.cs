@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEditor;
 using UnityEngine.UIElements;
 using System;
+using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
 
 namespace Unity.HLODSystem
 {
@@ -107,8 +109,8 @@ namespace Unity.HLODSystem
 
             if (Hlod != null)
             {
-                inputTexturePropertyNames = GetAllMaterialTexturePropertyNames(Hlod.gameObject);
-                inputColorPropertyNames = GetAllMaterialColorPropertyNames(Hlod.gameObject);
+                inputTexturePropertyNames = GetAllMaterialTexturePropertyNames(Hlod.OnlyIncludeHierarchy ? Hlod.gameObject : null);
+                inputColorPropertyNames = GetAllMaterialColorPropertyNames(Hlod.OnlyIncludeHierarchy ? Hlod.gameObject : null);
             }
             else
             {
@@ -335,43 +337,72 @@ namespace Unity.HLODSystem
             return colorPropertyNames;
         }
 
-        static List<string> GetAllMaterialTexturePropertyNames(GameObject root)
+        static List<string> GetAllMaterialTexturePropertyNames(GameObject rootObject)
         {
-            var meshRenderers = root.GetComponentsInChildren<MeshRenderer>();
-            HashSet<string> uniquePropertyNames = new HashSet<string>();
-            for (int m = 0; m < meshRenderers.Length; ++m)
-            {
-                var mesh = meshRenderers[m];
-                foreach (Material material in mesh.sharedMaterials)
-                {
-                    if (material == null)
-                        continue;
+            var roots = new List<GameObject>();
 
-                    var names = material.GetTexturePropertyNames();
-                    for (int n = 0; n < names.Length; ++n)
+            if (rootObject == null)
+            {
+                roots.AddRange(EditorSceneManager.GetActiveScene().GetRootGameObjects());
+            }
+            else
+            {
+                roots.Add(rootObject);
+            }
+
+            HashSet<string> uniquePropertyNames = new HashSet<string>();
+
+            foreach (var root in roots)
+            {
+                var meshRenderers = root.GetComponentsInChildren<MeshRenderer>();
+                for (int m = 0; m < meshRenderers.Length; ++m)
+                {
+                    var mesh = meshRenderers[m];
+                    foreach (Material material in mesh.sharedMaterials)
                     {
-                        uniquePropertyNames.Add(names[n]);
+                        if (material == null)
+                            continue;
+
+                        var names = material.GetTexturePropertyNames();
+                        for (int n = 0; n < names.Length; ++n)
+                        {
+                            uniquePropertyNames.Add(names[n]);
+                        }
                     }
                 }
-
             }
 
             return new List<string>(uniquePropertyNames);
         }
 
-        static List<string> GetAllMaterialColorPropertyNames(GameObject root)
+        static List<string> GetAllMaterialColorPropertyNames(GameObject rootObject)
         {
-            var meshRenderers = root.GetComponentsInChildren<MeshRenderer>();
-            var uniqueShaders = new HashSet<Shader>();
-            for (int m = 0; m < meshRenderers.Length; ++m)
-            {
-                var mesh = meshRenderers[m];
-                foreach (Material material in mesh.sharedMaterials)
-                {
-                    if (material == null)
-                        continue;
+            var roots = new List<GameObject>();
 
-                    uniqueShaders.Add(material.shader);
+            if (rootObject == null)
+            {
+                roots.AddRange(EditorSceneManager.GetActiveScene().GetRootGameObjects());
+            }
+            else
+            {
+                roots.Add(rootObject);
+            }
+
+            var uniqueShaders = new HashSet<Shader>();
+
+            foreach (var root in roots)
+            {
+                var meshRenderers = root.GetComponentsInChildren<MeshRenderer>();
+                for (int m = 0; m < meshRenderers.Length; ++m)
+                {
+                    var mesh = meshRenderers[m];
+                    foreach (Material material in mesh.sharedMaterials)
+                    {
+                        if (material == null)
+                            continue;
+
+                        uniqueShaders.Add(material.shader);
+                    }
                 }
             }
 

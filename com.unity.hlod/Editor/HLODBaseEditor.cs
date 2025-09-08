@@ -350,15 +350,15 @@ namespace Unity.HLODSystem
                     {
                         CoroutineRunner.RunCoroutine(TerrainHLODCreator.Destroy(hlod as TerrainHLOD));
                     }
+                }
 
-                    if (hlod is HLOD)
-                    {
-                        CoroutineRunner.RunCoroutine(HLODCreator.Create(hlod as HLOD));
-                    }
-                    else if (hlod is TerrainHLOD)
-                    {
-                        CoroutineRunner.RunCoroutine(TerrainHLODCreator.Create(hlod as TerrainHLOD));
-                    }
+                if (hlod is HLOD)
+                {
+                    CoroutineRunner.RunCoroutine(HLODCreator.Create(hlod as HLOD));
+                }
+                else if (hlod is TerrainHLOD)
+                {
+                    CoroutineRunner.RunCoroutine(TerrainHLODCreator.Create(hlod as TerrainHLOD));
                 }
             };
             Add(generateButton);

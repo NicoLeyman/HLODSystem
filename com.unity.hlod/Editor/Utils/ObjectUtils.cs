@@ -32,9 +32,9 @@ namespace Unity.HLODSystem.Utils
             return result.ToList();
         }
 
-        public static List<GameObject> HLODTargets(GameObject root)
+        public static List<GameObject> HLODTargets(GameObject root, bool destroyInactiveSubHLODs = false)
         {
-            if(root == null)
+            if (root == null)
             {
                 return new List<GameObject>();
             }
@@ -52,7 +52,7 @@ namespace Unity.HLODSystem.Utils
                     continue;
                 if (meshSetters[mi].gameObject.activeInHierarchy == false)
                     continue;
-                
+
                 targets.Add(meshSetters[mi].gameObject);
 
                 lodGroups.RemoveAll(meshSetters[mi].GetComponentsInChildren<LODGroup>());
@@ -61,7 +61,7 @@ namespace Unity.HLODSystem.Utils
 
             for (int i = 0; i < lodGroups.Count; ++i)
             {
-                if ( lodGroups[i].enabled == false )
+                if (lodGroups[i].enabled == false)
                     continue;
                 if (lodGroups[i].gameObject.activeInHierarchy == false)
                     continue;
@@ -84,7 +84,7 @@ namespace Unity.HLODSystem.Utils
 
             // Filter excluded objects
             var excludedObjects = root.GetComponentsInChildren<ExcludeFromHLOD>();
-            for(var e = 0; e < excludedObjects.Count(); ++e)
+            for (var e = 0; e < excludedObjects.Count(); ++e)
             {
                 var excludedObject = excludedObjects[e];
                 targets.Remove(excludedObject.gameObject);
@@ -99,7 +99,30 @@ namespace Unity.HLODSystem.Utils
                     }
                 }
             }
-            
+
+            // Remove active sub HLODs
+            var subHLODs = root.GetComponentsInChildren<HLODBase>();
+            for (var s = 0; s < subHLODs.Count(); ++s)
+            {
+                var subHLOD = subHLODs[s];
+                if (subHLOD.gameObject == root)
+                    continue;
+
+                if (subHLOD.enabled)
+                {
+                    var children = subHLOD.GetComponentsInChildren<Transform>();
+
+                    for (var c = 0; c < children.Length; ++c)
+                    {
+                        targets.Remove(children[c].gameObject);
+                    }
+                }
+                else if (destroyInactiveSubHLODs)
+                {
+                    HLODUtils.DestroyHLOD(subHLOD);
+                }
+            }
+
             //Combine several LODGroups and MeshRenderers belonging to Prefab into one.
             //Since the minimum unit of streaming is Prefab, it must be set to the minimum unit.
             HashSet<GameObject> targetsByPrefab = new HashSet<GameObject>();
@@ -138,11 +161,7 @@ namespace Unity.HLODSystem.Utils
         {
             return go.transform.parent.gameObject;
         }
-        
-        
-        
-        
-        
+  
         public static T CopyComponent<T>(T original, GameObject destination) where T : Component
         {
             System.Type type = original.GetType();
@@ -209,7 +228,7 @@ namespace Unity.HLODSystem.Utils
         public static T AddOrReplaceComponent<T>(GameObject gameOb) where T : Component
         {
             var type = typeof(T);
-            while(type != typeof(MonoBehaviour))
+            while (type != typeof(MonoBehaviour))
             {
                 if (gameOb.TryGetComponent(type, out var comp))
                 {

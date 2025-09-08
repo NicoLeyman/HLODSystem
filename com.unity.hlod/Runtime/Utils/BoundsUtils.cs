@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace Unity.HLODSystem.Utils
 {
@@ -35,10 +36,10 @@ namespace Unity.HLODSystem.Utils
             {
                 if (newMin.x > points[i].x) newMin.x = points[i].x;
                 if (newMax.x < points[i].x) newMax.x = points[i].x;
-                
+
                 if (newMin.y > points[i].y) newMin.y = points[i].y;
                 if (newMax.y < points[i].y) newMax.y = points[i].y;
-                
+
                 if (newMin.z > points[i].z) newMin.z = points[i].z;
                 if (newMax.z < points[i].z) newMax.z = points[i].z;
             }
@@ -47,6 +48,28 @@ namespace Unity.HLODSystem.Utils
             Bounds newBounds = new Bounds();
             newBounds.SetMinMax(newMin, newMax);
             return newBounds;
+        }
+        
+        public static Bounds GetBounds(IList<GameObject> gameObjects, Transform referenceTransform)
+        {
+            Bounds bounds = new Bounds();
+            bounds.SetMinMax(Vector3.positiveInfinity, Vector3.negativeInfinity);
+
+            foreach (var ob in gameObjects)
+            {
+                var renderers = ob.GetComponents<Renderer>();
+                for (int i = 0; i < renderers.Length; ++i)
+                {
+                    bounds.Encapsulate(CalcLocalBounds(renderers[i], referenceTransform));
+                }
+            }
+
+            if (bounds.min == Vector3.positiveInfinity)
+            {
+                return new Bounds();
+            }
+
+            return bounds;
         }
     }
 }

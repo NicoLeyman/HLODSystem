@@ -14,5 +14,17 @@ namespace Unity.HLODSystem.Utils
             }
             return value;
         }
+
+        public static void DestroyHLOD(HLODBase hlod)
+        {
+            if(hlod is HLOD)
+            {
+                CoroutineRunner.RunCoroutine(HLODCreator.Destroy(hlod as HLOD));
+            }
+            else if(hlod is TerrainHLOD)
+            {
+                CoroutineRunner.RunCoroutine(TerrainHLODCreator.Destroy(hlod as TerrainHLOD));
+            }
+        }
     }
 }
