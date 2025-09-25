@@ -86,7 +86,7 @@ namespace Unity.HLODSystem
                 batcherDropdown.RegisterValueChangedCallback((e) =>
                 {
                     hlod.BatcherType = hlodEditor.AddModuleUI(hlod, batcherDropdown.value, m_BatcherNames, m_BatcherTypes, BatcherFoldout, ref BatcherOptions );
-                    hlodEditor.SetDirtyAndApply(serializedObject, hlod);
+                    hlodEditor.SetDirtyAndApply();
                 });
 
                 if (m_BatcherTypes.Length == 0)

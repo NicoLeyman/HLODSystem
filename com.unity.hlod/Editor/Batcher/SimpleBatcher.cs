@@ -589,7 +589,7 @@ namespace Unity.HLODSystem
                 mappingLabel.style.whiteSpace = WhiteSpace.Normal;
                 mappingLabel.style.display = DisplayStyle.None;
 
-                var materialMappingElement = new MaterialMappingElement();
+                MaterialMappingElement materialMappingElement = null;
 
                 var materialMappingAssetElement = new DynamicAssetPropertyElement<MaterialMapping>("Material Mapping Asset", (string)batcherOptions.MaterialMappingGUID, null, (newValue, guid) =>
                 {
@@ -613,6 +613,18 @@ namespace Unity.HLODSystem
                         mappingLabel.style.display = DisplayStyle.None;
                     }
                 });
+
+                materialMappingElement = new MaterialMappingElement(() => {
+                    var mapping = (MaterialMapping)batcherOptions.MaterialMapping;
+                    if(mapping == null)
+                    {
+                        mapping = HLODEditorSettings.Instance.DefaultMaterialMapping;
+                    }
+                    var serializedObject = new SerializedObject(mapping);
+                    EditorUtility.SetDirty(mapping);
+                    serializedObject.ApplyModifiedProperties();
+                });
+
                 root.Add(materialMappingAssetElement);
                 materialMappingAssetElement.value = materialMapping;
 

@@ -16,7 +16,11 @@ namespace Unity.HLODSystem
         {
             var materialMapping = target as MaterialMapping;
 
-            var materialMappingEditor = new MaterialMappingElement();
+            var materialMappingEditor = new MaterialMappingElement(() =>
+            {
+                EditorUtility.SetDirty(target);
+                serializedObject.ApplyModifiedProperties();
+            });
             materialMappingEditor.Bind(null, materialMapping);
 
             return materialMappingEditor;
@@ -90,7 +94,7 @@ namespace Unity.HLODSystem
         Foldout TextureSlotsFoldout;
         ListView TextureSlots;
 
-
+        Action SetDirty;
 
         public MaterialMapping value
         {
@@ -133,8 +137,12 @@ namespace Unity.HLODSystem
 
             TextureInfo TextureInfo;
 
-            public TextureSlotField(List<string> inputTexturePropertyNames, List<string> inputColorPropertyNames, List<string> outputTexturePropertyNames, List<string> defaultColorNames)
+            Action SetDirty;
+
+            public TextureSlotField(List<string> inputTexturePropertyNames, List<string> inputColorPropertyNames, List<string> outputTexturePropertyNames, List<string> defaultColorNames, Action setDirty)
             {
+                SetDirty = setDirty;
+
                 style.height = StyleKeyword.Auto;
 
                 var foldout = new Foldout();
@@ -152,6 +160,7 @@ namespace Unity.HLODSystem
                         inputSlotTemplate.RegisterValueChangedCallback((e) =>
                         {
                             TextureInfo.InputTexturePropertyNames[(int)inputSlotTemplate.userData] = e.newValue;
+                            SetDirty();
                         });
                         return inputSlotTemplate;
                     };
@@ -176,6 +185,7 @@ namespace Unity.HLODSystem
                         inputSlotTemplate.RegisterValueChangedCallback((e) =>
                         {
                             TextureInfo.InputColorPropertyNames[(int)inputSlotTemplate.userData] = e.newValue;
+                            SetDirty();
                         });
                         return inputSlotTemplate;
                     };
@@ -198,6 +208,7 @@ namespace Unity.HLODSystem
                 {
                     TextureInfo.OutputName = e.newValue;
                     foldout.text = e.newValue;
+                    SetDirty();
                 });
                 foldout.Add(OutputDropdown);
                 OutputDropdown.style.height = lineHeight;
@@ -211,6 +222,7 @@ namespace Unity.HLODSystem
                     {
                         TextureInfo.Type = defaultColor;
                     }
+                    SetDirty();
                 });
                 foldout.Add(DefaultColorDropdown);
                 DefaultColorDropdown.style.height = lineHeight;
@@ -231,8 +243,10 @@ namespace Unity.HLODSystem
             }
         }
 
-        public MaterialMappingElement()
+        public MaterialMappingElement(Action setDirty)
         {
+            SetDirty = setDirty;
+
             var packingTypes = Enum.GetValues(typeof(PackingType));
             defaultColorNames = new List<string>();
             foreach (var packingType in packingTypes)
@@ -249,6 +263,8 @@ namespace Unity.HLODSystem
                 {
                     Mapping.ShaderGUID = shaderGUID;
                 }
+
+                SetDirty();
 
                 RefreshShaderProperties();
             });
@@ -311,7 +327,7 @@ namespace Unity.HLODSystem
             TextureSlotsFoldout.Add(TextureSlots);
             TextureSlots.makeItem = () =>
             {
-                return new TextureSlotField(inputTexturePropertyNames, inputColorPropertyNames, outputTexturePropertyNames, defaultColorNames);
+                return new TextureSlotField(inputTexturePropertyNames, inputColorPropertyNames, outputTexturePropertyNames, defaultColorNames, SetDirty);
             };
             TextureSlots.bindItem = (element, idx) =>
             {
@@ -324,6 +340,8 @@ namespace Unity.HLODSystem
                 (element as TextureSlotField).Bind(TextureSlots, slot);
             };
             TextureSlots.showAddRemoveFooter = true;
+            TextureSlots.onAdd = (list) => { SetDirty(); };
+            TextureSlots.onRemove = (list) => { SetDirty(); };
             TextureSlots.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
         }
 
