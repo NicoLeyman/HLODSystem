@@ -338,7 +338,9 @@ namespace Unity.HLODSystem.Streaming
             System.Diagnostics.StackFrame previousFrame = trace.GetFrame(1);
 
             var methodName = previousFrame?.GetMethod()?.Name;
-            if (methodName == "Internal_VerifyModifiedMonoBehaviours" || methodName == "UpdateIfRequiredOrScript_Injected")
+            if (methodName == "Internal_VerifyModifiedMonoBehaviours" || 
+                methodName == "UpdateIfRequiredOrScript_Injected" || 
+                methodName == "Update_Injected")
             {
                 m_serializedTeeNodeContainer = null;
             }
