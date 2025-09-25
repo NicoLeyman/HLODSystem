@@ -102,6 +102,9 @@ namespace Unity.HLODSystem
         public void SetContainer(HLODTreeNodeContainer container)
         {
             m_container = container;
+
+            if (m_container.Count == 0)
+                return;
             
             for (int i = 0; i < m_childTreeNodeIds.Count; ++i)
             {
