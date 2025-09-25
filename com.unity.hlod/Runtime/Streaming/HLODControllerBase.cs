@@ -241,6 +241,7 @@ namespace Unity.HLODSystem.Streaming
         private ISpaceManager m_spaceManager;
 
         private HLODTreeNodeContainer m_treeNodeContainer;
+        [HideInInspector]
         [SerializeField] 
         private HLODTreeNodeContainer m_serializedTeeNodeContainer;
 
