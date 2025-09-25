@@ -240,8 +240,10 @@ namespace Unity.HLODSystem.Streaming
         #region variables
         private ISpaceManager m_spaceManager;
 
-        [SerializeField] 
         private HLODTreeNodeContainer m_treeNodeContainer;
+        [SerializeField] 
+        private HLODTreeNodeContainer m_serializedTeeNodeContainer;
+
         [SerializeField]
         private HLODTreeNode m_root;
 
@@ -326,13 +328,34 @@ namespace Unity.HLODSystem.Streaming
         }
         #endregion
 
+        // OnBeforeSerialize is called every frame when the inspector tab updates, 
+        // since the TreeNodeContainer can be massive we want to avoid the cost of constantly serializing it.
+        // This does mean we can't display the TreeNodeContainer in the inspector, although we could serialize some metadata like the size of it here.
         public void OnBeforeSerialize()
         {
-            
+#if UNITY_EDITOR
+            System.Diagnostics.StackTrace trace = new();
+            System.Diagnostics.StackFrame previousFrame = trace.GetFrame(1);
+
+            var methodName = previousFrame?.GetMethod()?.Name;
+            if (methodName == "Internal_VerifyModifiedMonoBehaviours" || methodName == "UpdateIfRequiredOrScript_Injected")
+            {
+                m_serializedTeeNodeContainer = null;
+            }
+            else
+#endif
+            {
+                m_serializedTeeNodeContainer = m_treeNodeContainer;
+            }
         }
 
         public void OnAfterDeserialize()
         {
+            if (m_serializedTeeNodeContainer != null)
+            {
+                m_treeNodeContainer = m_serializedTeeNodeContainer;
+                m_serializedTeeNodeContainer = null;
+            }
             UpdateContainer();
         }
 
