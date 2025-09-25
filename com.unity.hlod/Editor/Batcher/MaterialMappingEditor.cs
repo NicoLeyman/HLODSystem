@@ -87,7 +87,9 @@ namespace Unity.HLODSystem
         DropdownField TintColorInputDropdown;
         DropdownField TintColorOutputDropdown;
         DropdownField TintColorOutputTextureDropdown;
+        Foldout TextureSlotsFoldout;
         ListView TextureSlots;
+
 
 
         public MaterialMapping value
@@ -117,6 +119,8 @@ namespace Unity.HLODSystem
                 inputTexturePropertyNames = outputTexturePropertyNames;
                 inputColorPropertyNames = outputColorPropertyNames;
             }
+
+            RebuildTextureSlots();
         }
 
         class TextureSlotField : VisualElement
@@ -251,11 +255,11 @@ namespace Unity.HLODSystem
             ShaderDropdown.tooltip = $"A value of {ShaderDropdown.InvalidName} equals the value of Preferences/HLOD/Default Shader.";
             Add(ShaderDropdown);
 
-            var textureSlotFoldout = new Foldout() { text = "Textures" };           
+            TextureSlotsFoldout = new Foldout() { text = "Textures" };           
             {
                 var header = new VisualElement();
                 header.style.flexDirection = FlexDirection.Row;
-                textureSlotFoldout.Add(header);
+                TextureSlotsFoldout.Add(header);
 
                 var headerStub = new VisualElement();
                 headerStub.style.width = 35.0f;
@@ -279,25 +283,6 @@ namespace Unity.HLODSystem
                 defaultColor.style.width = new Length(25.0f, LengthUnit.Percent);
                 headerLabels.Add(defaultColor);
 
-                TextureSlots = new ListView();
-                textureSlotFoldout.Add(TextureSlots);
-                TextureSlots.makeItem = () =>
-                {
-                    return new TextureSlotField(inputTexturePropertyNames, inputColorPropertyNames, outputTexturePropertyNames, defaultColorNames);
-                };
-                TextureSlots.bindItem = (element, idx) =>
-                {
-                    var slot = Mapping.TextureInfoList[idx];
-                    if(slot == null)
-                    {
-                        slot = new TextureInfo();
-                        Mapping.TextureInfoList[idx] = slot;
-                    }
-                    (element as TextureSlotField).Bind(TextureSlots, slot);
-                };
-                TextureSlots.showAddRemoveFooter = true;
-                TextureSlots.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
-
                 //var updateTexturePropertiesButton = new Button() { text = "Add new texture property" };
                 //Add(updateTexturePropertiesButton);
                 //updateTexturePropertiesButton.clicked += () =>
@@ -313,7 +298,33 @@ namespace Unity.HLODSystem
                     RefreshShaderProperties();
                 };
             }
-            Add(textureSlotFoldout);
+            Add(TextureSlotsFoldout);
+        }
+
+        void RebuildTextureSlots()
+        {
+            if(TextureSlots != null)
+            {
+                TextureSlotsFoldout.Remove(TextureSlots);
+            }
+            TextureSlots = new ListView();
+            TextureSlotsFoldout.Add(TextureSlots);
+            TextureSlots.makeItem = () =>
+            {
+                return new TextureSlotField(inputTexturePropertyNames, inputColorPropertyNames, outputTexturePropertyNames, defaultColorNames);
+            };
+            TextureSlots.bindItem = (element, idx) =>
+            {
+                var slot = Mapping.TextureInfoList[idx];
+                if (slot == null)
+                {
+                    slot = new TextureInfo();
+                    Mapping.TextureInfoList[idx] = slot;
+                }
+                (element as TextureSlotField).Bind(TextureSlots, slot);
+            };
+            TextureSlots.showAddRemoveFooter = true;
+            TextureSlots.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
         }
 
         static List<string> GetTexturePropertyNames(Shader shader)

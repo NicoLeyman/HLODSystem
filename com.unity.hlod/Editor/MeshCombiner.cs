@@ -111,7 +111,10 @@ namespace Unity.HLODSystem
                 if ( colorCount > 0 )
                     FillBuffer(ref colors, mesh.colors, remapper, Color.white);
 
-                FillIndices(ref triangles, mesh.GetTriangles(infos[i].MeshIndex), remapper, startIndex);
+                Vector3 scale = infos[i].Transform.lossyScale;
+                bool flipTriangles = scale.x * scale.y * scale.z < 0.0f;
+
+                FillIndices(ref triangles, mesh.GetTriangles(infos[i].MeshIndex), remapper, startIndex, flipTriangles);
 
             }
 
@@ -147,12 +150,23 @@ namespace Unity.HLODSystem
             }
         }
 
-        private void FillIndices(ref List<int> buffer, int[] source, Dictionary<int,int> remapper, int startIndex )
+        private void FillIndices(ref List<int> buffer, int[] source, Dictionary<int,int> remapper, int startIndex, bool flipTriangles)
         {
-            for (int i = 0; i < source.Length; ++i)
+            if (flipTriangles)
             {
-                int newIndex = remapper[source[i]] + startIndex;
-                buffer.Add(newIndex);
+                for (int i = source.Length - 1; i >= 0; --i)
+                {
+                    int newIndex = remapper[source[i]] + startIndex;
+                    buffer.Add(newIndex);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < source.Length; ++i)
+                {
+                    int newIndex = remapper[source[i]] + startIndex;
+                    buffer.Add(newIndex);
+                }
             }
         }
 
